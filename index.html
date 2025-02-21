@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Business Booking | Welcome</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
   <style>
     body {
@@ -90,8 +89,9 @@
       const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         selectable: true,
-        select: function (info) {
-          const selectedDate = info.startStr;
+        height: 'auto',
+        dateClick: function (info) {
+          const selectedDate = info.dateStr;
           const timeSlot = prompt(`You selected ${selectedDate}. Enter preferred time (HH:MM):`);
           if (timeSlot) {
             const name = prompt('Enter your full name:');
@@ -129,4 +129,5 @@
   </script>
 </body>
 </html>
+
 
