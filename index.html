@@ -1,4 +1,4 @@
-<!-- Simple Booking Website Template with Hidden Admin and Appointments Pages -->
+<!-- Complete Booking Website Template -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -53,23 +53,74 @@
     <div id="calendar"></div>
     <form id="booking-form">
       <label for="name">Full Name:</label>
-      <input type="text" id="name" required>
+      <input type="text" id="name" placeholder="Enter your name" required>
+      <label for="date">Select Date:</label>
+      <input type="date" id="date" required>
+      <label for="time">Select Time Slot:</label>
+      <select id="time-slot" required>
+        <option value="">Select a Time Slot</option>
+        <option value="09:00">9:00 AM</option>
+        <option value="10:00">10:00 AM</option>
+        <option value="11:00">11:00 AM</option>
+        <option value="12:00">12:00 PM</option>
+        <option value="13:00">1:00 PM</option>
+        <option value="14:00">2:00 PM</option>
+        <option value="15:00">3:00 PM</option>
+      </select>
       <label for="details">Appointment Details:</label>
-      <textarea id="details" required></textarea>
+      <textarea id="details" placeholder="Any additional details..." required></textarea>
       <button type="submit" class="btn">Confirm Appointment</button>
     </form>
+    <div id="confirmation-message" style="display:none;">
+      <p>Thank you for booking! We will contact you soon.</p>
+    </div>
+  </section>
+
+  <section id="testimonials">
+    <h2>What Our Clients Say</h2>
+    <div class="testimonial-list">
+      <div class="testimonial-item">
+        <p>"Excellent service and friendly staff! Highly recommend."</p>
+        <span>- Sarah L.</span>
+      </div>
+      <div class="testimonial-item">
+        <p>"Loved my lashes! Professional and comfortable experience."</p>
+        <span>- Jessica R.</span>
+      </div>
+      <div class="testimonial-item">
+        <p>"The best hair styling in town! Will book again."</p>
+        <span>- Megan T.</span>
+      </div>
+    </div>
   </section>
 
   <section id="contact">
     <h2>Contact Us</h2>
     <p>Email: info@yourbusiness.com</p>
     <p>Phone: (123) 456-7890</p>
+    <p>Address: 123 Beauty Lane, Glamour City, ST 12345</p>
   </section>
 
   <footer>
     <p>&copy; 2024 Business Name. All rights reserved.</p>
   </footer>
 
-  <script src="calendar.js"></script>
+  <!-- JavaScript for Booking Logic -->
+  <script>
+    document.getElementById('booking-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const date = document.getElementById('date').value;
+      const time = document.getElementById('time-slot').value;
+      const details = document.getElementById('details').value;
+      if (name && date && time && details) {
+        // Simulate saving appointment data (later linked to hidden page)
+        console.log(`Appointment booked: ${name} on ${date} at ${time}. Details: ${details}`);
+        document.getElementById('booking-form').reset();
+        document.getElementById('confirmation-message').style.display = 'block';
+      }
+    });
+  </script>
 </body>
 </html>
+
