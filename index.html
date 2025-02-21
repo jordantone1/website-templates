@@ -7,51 +7,71 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+  <style>
+    body {
+      background-color: #f4f4f4;
+      font-family: 'Poppins', sans-serif;
+    }
+    header {
+      background-color: #e0e0e0;
+      padding: 20px;
+      text-align: center;
+    }
+    #hero {
+      background-color: #f0f0f0;
+      padding: 50px 20px;
+      text-align: center;
+    }
+    .btn {
+      background-color: #007BFF;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #0056b3;
+    }
+    #popup-calendar {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      z-index: 1000;
+    }
+    #popup-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+    }
+  </style>
 </head>
 <body>
   <header>
-    <nav>
-      <h1 id="business-name">Business Name</h1>
-      <ul>
-        <li><a href="#services">Services</a></li>
-        <li><a href="#booking">Book Now</a></li>
-        <li><a href="#contact">Contact</a></li>
-      </ul>
-    </nav>
+    <h1 id="business-name">Business Name</h1>
   </header>
 
   <section id="hero">
     <h2>Welcome to Our Booking Service</h2>
     <p>Schedule your appointment today and experience excellence.</p>
-    <a href="#booking" class="btn">Book an Appointment</a>
+    <button id="book-appointment-btn" class="btn">Book an Appointment</button>
   </section>
 
-  <section id="services">
-    <h2>Our Services</h2>
-    <div class="service-list">
-      <div class="service-item" id="lash-service">
-        <h3>Lash Extensions</h3>
-        <p>Classic, Hybrid, and Volume Lashes</p>
-        <span id="lash-price">$100+</span>
-      </div>
-      <div class="service-item" id="hair-service">
-        <h3>Hair Styling</h3>
-        <p>Cut, Color, and Styling Services</p>
-        <span id="hair-price">$80+</span>
-      </div>
-      <div class="service-item" id="makeup-service">
-        <h3>Makeup Application</h3>
-        <p>Full-face makeup for any occasion</p>
-        <span id="makeup-price">$120+</span>
-      </div>
-    </div>
-  </section>
-
-  <section id="booking">
-    <h2>Book an Appointment</h2>
-    <p>Select an available date and time from the calendar below.</p>
+  <div id="popup-overlay"></div>
+  <div id="popup-calendar">
+    <h2>Select Date and Time</h2>
     <div id="calendar"></div>
-    <form id="booking-form">
+    <form id="popup-booking-form">
       <label for="name">Full Name:</label>
       <input type="text" id="name" placeholder="Enter your name" required>
       <label for="selected-date">Selected Date:</label>
@@ -61,33 +81,36 @@
       <label for="details">Appointment Details:</label>
       <textarea id="details" placeholder="Any additional details..." required></textarea>
       <button type="submit" class="btn">Confirm Appointment</button>
+      <button type="button" id="cancel-btn" class="btn">Cancel</button>
     </form>
-    <div id="confirmation-message" style="display:none;">
-      <p>Thank you for booking! We will contact you soon.</p>
-    </div>
-  </section>
-
-  <section id="contact">
-    <h2>Contact Us</h2>
-    <p>Email: info@yourbusiness.com</p>
-    <p>Phone: (123) 456-7890</p>
-  </section>
-
-  <footer>
-    <p>&copy; 2024 Business Name. All rights reserved.</p>
-  </footer>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      const calendarEl = document.getElementById('calendar');
+      const bookBtn = document.getElementById('book-appointment-btn');
+      const popup = document.getElementById('popup-calendar');
+      const overlay = document.getElementById('popup-overlay');
+      const cancelBtn = document.getElementById('cancel-btn');
       const blockedSlots = JSON.parse(localStorage.getItem('blockedSlots')) || {};
+
+      bookBtn.addEventListener('click', () => {
+        popup.style.display = 'block';
+        overlay.style.display = 'block';
+      });
+
+      cancelBtn.addEventListener('click', () => {
+        popup.style.display = 'none';
+        overlay.style.display = 'none';
+      });
+
+      const calendarEl = document.getElementById('calendar');
       const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'timeGridWeek',
+        initialView: 'dayGridMonth',
         selectable: true,
         select: function (info) {
-          document.getElementById('selected-date').value = info.startStr.split('T')[0];
-          document.getElementById('selected-time').value = info.startStr.split('T')[1].substring(0, 5);
+          document.getElementById('selected-date').value = info.startStr;
+          document.getElementById('selected-time').value = 'Select a Time Slot';
         },
         events: Object.entries(blockedSlots).flatMap(([date, times]) => {
           return times.map(time => {
@@ -102,7 +125,7 @@
       });
       calendar.render();
 
-      document.getElementById('booking-form').addEventListener('submit', function (e) {
+      document.getElementById('popup-booking-form').adEventListener('submit', function (e) {
         e.preventDefault();
         const date = document.getElementById('selected-date').value;
         const time = document.getElementById('selected-time').value;
@@ -120,10 +143,12 @@
           color: '#ff4d4d'
         });
 
-        document.getElementById('confirmation-message').style.display = 'block';
+        document.getElementById('popup-calendar').style.display = 'none';
+        document.getElementById('popup-overlay').style.display = 'none';
         e.target.reset();
       });
     });
   </script>
 </body>
 </html>
+
