@@ -43,15 +43,19 @@
     button:hover {
       background-color: #0056b3;
     }
+    textarea {
+      width: 100%;
+      height: 300px;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
   <h1>Business Booking Admin Setup</h1>
   <div id="setup-container">
-    <p>Welcome! Let's set up your booking system step by step.</p>
+    <p>Complete the setup process to generate your custom website code.</p>
     <button id="start-setup">Start Setup</button>
   </div>
-
   <div id="popup" class="popup"></div>
 
   <script>
@@ -59,26 +63,9 @@
 
     function runSetup() {
       showPrompt('Enter your Business Name:', (businessName) => {
-        localStorage.setItem('businessName', businessName);
-        showPrompt('Which services do you offer? (Makeup, Hair, Custom)', (services) => {
-          localStorage.setItem('services', services);
-          showPrompt('How many products/services do you offer?', (count) => {
-            const productDetails = [];
-            function getProductDetails(i) {
-              if (i < count) {
-                showPrompt(`Enter name, description, and price for product ${i + 1}:`, (details) => {
-                  productDetails.push(details);
-                  getProductDetails(i + 1);
-                });
-              } else {
-                localStorage.setItem('products', JSON.stringify(productDetails));
-                showPrompt('Choose a background color for your site (e.g., #ffffff, #f0f0f0):', (color) => {
-                  localStorage.setItem('backgroundColor', color);
-                  setupGoogleSheets();
-                });
-              }
-            }
-            getProductDetails(0);
+        showPrompt('Enter your preferred background color (e.g., #ffffff):', (bgColor) => {
+          showPrompt('List services with pricing (Format: Service - Price):', (services) => {
+            generateCode(businessName, bgColor, services);
           });
         });
       });
@@ -95,38 +82,34 @@
       });
     }
 
-    function setupGoogleSheets() {
-      showPrompt('Enter your email to receive booking updates:', (email) => {
-        localStorage.setItem('customerEmail', email);
-        // Placeholder for Google Sheets creation and authorization logic
-        localStorage.setItem('googleSheetLinked', true);
-        uploadPhotos();
-      });
-    }
+    function generateCode(businessName, bgColor, services) {
+      const servicesArray = services.split(',').map(service => `<li>${service.trim()}</li>`).join('\n');
+      const generatedCode = `<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>${businessName}</title>
+  <style>
+    body { background-color: ${bgColor}; font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+    h1 { color: #333; }
+    ul { list-style-type: none; padding: 0; }
+  </style>
+</head>
+<body>
+  <h1>${businessName}</h1>
+  <h2>Our Services</h2>
+  <ul>
+    ${servicesArray}
+  </ul>
+</body>
+</html>`;
 
-    function uploadPhotos() {
-      showPrompt('Would you like to upload cycling photos? (Yes/No)', (uploadPhotos) => {
-        if (uploadPhotos.toLowerCase() === 'yes') {
-          showPrompt('How many photos for the left side?', (leftCount) => {
-            showPrompt('How many photos for the right side?', (rightCount) => {
-              localStorage.setItem('leftPhotos', leftCount);
-              localStorage.setItem('rightPhotos', rightCount);
-              mockBookingTest();
-            });
-          });
-        } else {
-          mockBookingTest();
-        }
-      });
-    }
-
-    function mockBookingTest() {
-      showPrompt('Please complete a mock booking to ensure everything works correctly. Click OK to proceed to the calendar.', (response) => {
-        if (response.toLowerCase() === 'ok') {
-          alert('Redirecting to mock booking page...');
-          window.location.href = 'index.html';
-        }
-      });
+      document.getElementById('setup-container').innerHTML = `
+        <h2>Setup Complete!</h2>
+        <p>Copy the following code and paste it into your GitHub repository:</p>
+        <textarea readonly>${generatedCode}</textarea>
+      `;
     }
   </script>
 </body>
