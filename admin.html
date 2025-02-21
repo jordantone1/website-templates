@@ -1,0 +1,52 @@
+<!-- Hidden Appointments Page -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appointments Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Appointments Dashboard</h1>
+  </header>
+
+  <section id="appointments-table">
+    <h2>Upcoming Appointments</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody id="appointments-list">
+        <!-- Appointment data will be dynamically added here -->
+      </tbody>
+    </table>
+  </section>
+
+  <script>
+    // Simulate loading booked appointments from local storage (or a database in the future)
+    document.addEventListener('DOMContentLoaded', () => {
+      const appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+      const tableBody = document.getElementById('appointments-list');
+      
+      appointments.forEach(appointment => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${appointment.name}</td>
+          <td>${appointment.date}</td>
+          <td>${appointment.time}</td>
+          <td>${appointment.details}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    });
+  </script>
+</body>
+</html>
