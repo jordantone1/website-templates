@@ -1,132 +1,124 @@
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const settings = JSON.parse(localStorage.getItem('adminSettings')) || {};
-    const blockedSlots = JSON.parse(localStorage.getItem('blockedSlots')) || {};
-
-    if (settings.businessName) document.getElementById('business-name').textContent = settings.businessName;
-    if (settings.primaryColor) document.documentElement.style.setProperty('--primary-color', settings.primaryColor);
-    if (settings.fontChoice) document.body.style.fontFamily = settings.fontChoice;
-    if (settings.servicePricing) {
-      const prices = settings.servicePricing.split('\n');
-      prices.forEach(priceLine => {
-        const [service, price] = priceLine.split(':');
-        if (service && price) {
-          const serviceId = service.trim().toLowerCase().replace(' ', '-') + '-price';
-          const element = document.getElementById(serviceId);
-          if (element) {
-            element.textContent = price.trim();
-          }
-        }
-      });
-    }
-    if (settings.sectionVisibility) {
-      document.getElementById('makeup-service').style.display = settings.sectionVisibility.makeup ? 'block' : 'none';
-      document.getElementById('hair-service').style.display = settings.sectionVisibility.hair ? 'block' : 'none';
-      document.getElementById('lash-service').style.display = settings.sectionVisibility.lash ? 'block' : 'none';
-    }
-
-    // Automatically fill in the selected date and time
-    const dateInput = document.getElementById('date');
-    const timeSlotSelect = document.getElementById('time-slot');
-    const calendarDiv = document.getElementById('calendar');
-
-    calendarDiv.addEventListener('click', () => {
-      const selectedDate = new Date().toISOString().split('T')[0];
-      dateInput.value = selectedDate;
-      updateTimeSlots(selectedDate);
-    });
-
-    function updateTimeSlots(date) {
-      let availableSlots = [
-        "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00"
-      ];
-      const bookedSlots = blockedSlots[date] || [];
-      timeSlotSelect.innerHTML = availableSlots
-        .filter(slot => !bookedSlots.includes(slot))
-        .map(slot => `<option value="${slot}">${slot}</option>`) // Show only available slots
-        .join('');
-    }
-
-    timeSlotSelect.addEventListener('change', () => {
-      const selectedTime = timeSlotSelect.value;
-      if (selectedTime) {
-        // Temporarily block the slot for 45 seconds
-        const selectedDate = dateInput.value;
-        if (!blockedSlots[selectedDate]) blockedSlots[selectedDate] = [];
-        blockedSlots[selectedDate].push(selectedTime);
-        localStorage.setItem('blockedSlots', JSON.stringify(blockedSlots));
-        updateTimeSlots(selectedDate);
-        
-        setTimeout(() => {
-          // Unblock if the appointment wasn't confirmed
-          const index = blockedSlots[selectedDate].indexOf(selectedTime);
-          if (index > -1) {
-            blockedSlots[selectedDate].splice(index, 1);
-            localStorage.setItem('blockedSlots', JSON.stringify(blockedSlots));
-            updateTimeSlots(selectedDate);
-          }
-        }, 45000);
-      }
-    });
-
-    // Confirm booking and permanently block the slot
-    document.getElementById('booking-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const selectedDate = dateInput.value;
-      const selectedTime = timeSlotSelect.value;
-      if (!blockedSlots[selectedDate]) blockedSlots[selectedDate] = [];
-      blockedSlots[selectedDate].push(selectedTime);
-      localStorage.setItem('blockedSlots', JSON.stringify(blockedSlots));
-      updateTimeSlots(selectedDate);
-      document.getElementById('confirmation-message').style.display = 'block';
-      e.target.reset();
-    });
-  });
-</script>
-
-<style>
-  /* Responsive Design for Mobile Users */
-  @media (max-width: 768px) {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Setup | Business Booking</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
     body {
-      font-size: 16px;
-      padding: 10px;
+      font-family: 'Poppins', sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+      text-align: center;
     }
-    nav ul {
-      flex-direction: column;
-      align-items: center;
-      gap: 1rem;
+    #setup-container {
+      background: white;
+      padding: 30px;
+      margin: auto;
+      width: 50%;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      border-radius: 10px;
     }
-    .service-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-    .service-item {
-      width: 100%;
-    }
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    input, select, textarea {
-      width: 100%;
-      padding: 0.75rem;
-      font-size: 1rem;
-      border-radius: 5px;
-      border: 1px solid #ccc;
+    .popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      z-index: 1000;
+      border-radius: 10px;
     }
     button {
-      padding: 1rem;
-      background-color: var(--primary-color);
+      padding: 10px 20px;
+      background-color: #007BFF;
       color: white;
       border: none;
-      border-radius: 8px;
-      font-size: 1rem;
+      border-radius: 5px;
       cursor: pointer;
     }
     button:hover {
-      background-color: darken(var(--primary-color), 10%);
+      background-color: #0056b3;
     }
-  }
-</style>
+  </style>
+</head>
+<body>
+  <h1>Business Booking Admin Setup</h1>
+  <div id="setup-container">
+    <p>Welcome! Let's set up your booking system step by step.</p>
+    <button id="start-setup">Start Setup</button>
+  </div>
+
+  <div id="popup" class="popup"></div>
+
+  <script>
+    document.getElementById('start-setup').addEventListener('click', runSetup);
+
+    function runSetup() {
+      showPrompt('Enter your Business Name:', (businessName) => {
+        localStorage.setItem('businessName', businessName);
+        showPrompt('Which services do you offer? (Makeup, Hair, Custom)', (services) => {
+          localStorage.setItem('services', services);
+          showPrompt('How many products/services do you offer?', (count) => {
+            const productDetails = [];
+            function getProductDetails(i) {
+              if (i < count) {
+                showPrompt(`Enter name, description, and price for product ${i + 1}:`, (details) => {
+                  productDetails.push(details);
+                  getProductDetails(i + 1);
+                });
+              } else {
+                localStorage.setItem('products', JSON.stringify(productDetails));
+                showPrompt('Would you like to upload cycling photos? (Yes/No)', (uploadPhotos) => {
+                  if (uploadPhotos.toLowerCase() === 'yes') {
+                    showPrompt('How many photos for the left side?', (leftCount) => {
+                      showPrompt('How many photos for the right side?', (rightCount) => {
+                        localStorage.setItem('leftPhotos', leftCount);
+                        localStorage.setItem('rightPhotos', rightCount);
+                        setupGoogleSheets();
+                      });
+                    });
+                  } else {
+                    setupGoogleSheets();
+                  }
+                });
+              }
+            }
+            getProductDetails(0);
+          });
+        });
+      });
+    }
+
+    function showPrompt(message, callback) {
+      const popup = document.getElementById('popup');
+      popup.innerHTML = `<p>${message}</p><input type='text' id='popup-input'><br><button id='popup-submit'>Submit</button>`;
+      popup.style.display = 'block';
+      document.getElementById('popup-submit').addEventListener('click', () => {
+        const input = document.getElementById('popup-input').value;
+        popup.style.display = 'none';
+        callback(input);
+      });
+    }
+
+    function setupGoogleSheets() {
+      showPrompt('Authorize and set up Google Sheets for bookings. (Type "OK" to proceed)', (response) => {
+        if (response.toLowerCase() === 'ok') {
+          // Placeholder for Google Sheets authorization and linking logic
+          localStorage.setItem('googleSheetLinked', true);
+          showPrompt('Perform a mock appointment booking to confirm integration. (Type "Done" when finished)', (done) => {
+            if (done.toLowerCase() === 'done') {
+              alert('Setup Complete! Your booking system is now ready. You can access the full site.');
+              localStorage.setItem('setupComplete', true);
+              window.location.href = 'index.html';
+            }
+          });
+        }
+      });
+    }
+  </script>
+</body>
+</html>
