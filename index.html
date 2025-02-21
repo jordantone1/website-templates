@@ -1,4 +1,4 @@
-<!-- Complete Booking Website Template -->
+<!-- Complete Booking Website Template with Admin Settings Integration and Auto-fill Date/Time -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,7 +11,7 @@
 <body>
   <header>
     <nav>
-      <h1>Business Name</h1>
+      <h1 id="business-name">Business Name</h1>
       <ul>
         <li><a href="#services">Services</a></li>
         <li><a href="#booking">Book Now</a></li>
@@ -29,20 +29,20 @@
   <section id="services">
     <h2>Our Services</h2>
     <div class="service-list">
-      <div class="service-item">
+      <div class="service-item" id="lash-service">
         <h3>Lash Extensions</h3>
         <p>Classic, Hybrid, and Volume Lashes</p>
-        <span>$100+</span>
+        <span id="lash-price">$100+</span>
       </div>
-      <div class="service-item">
+      <div class="service-item" id="hair-service">
         <h3>Hair Styling</h3>
         <p>Cut, Color, and Styling Services</p>
-        <span>$80+</span>
+        <span id="hair-price">$80+</span>
       </div>
-      <div class="service-item">
+      <div class="service-item" id="makeup-service">
         <h3>Makeup Application</h3>
         <p>Full-face makeup for any occasion</p>
-        <span>$120+</span>
+        <span id="makeup-price">$120+</span>
       </div>
     </div>
   </section>
@@ -55,18 +55,9 @@
       <label for="name">Full Name:</label>
       <input type="text" id="name" placeholder="Enter your name" required>
       <label for="date">Select Date:</label>
-      <input type="date" id="date" required>
+      <input type="date" id="date" readonly required>
       <label for="time">Select Time Slot:</label>
-      <select id="time-slot" required>
-        <option value="">Select a Time Slot</option>
-        <option value="09:00">9:00 AM</option>
-        <option value="10:00">10:00 AM</option>
-        <option value="11:00">11:00 AM</option>
-        <option value="12:00">12:00 PM</option>
-        <option value="13:00">1:00 PM</option>
-        <option value="14:00">2:00 PM</option>
-        <option value="15:00">3:00 PM</option>
-      </select>
+      <select id="time-slot" required></select>
       <label for="details">Appointment Details:</label>
       <textarea id="details" placeholder="Any additional details..." required></textarea>
       <button type="submit" class="btn">Confirm Appointment</button>
@@ -76,51 +67,70 @@
     </div>
   </section>
 
-  <section id="testimonials">
-    <h2>What Our Clients Say</h2>
-    <div class="testimonial-list">
-      <div class="testimonial-item">
-        <p>"Excellent service and friendly staff! Highly recommend."</p>
-        <span>- Sarah L.</span>
-      </div>
-      <div class="testimonial-item">
-        <p>"Loved my lashes! Professional and comfortable experience."</p>
-        <span>- Jessica R.</span>
-      </div>
-      <div class="testimonial-item">
-        <p>"The best hair styling in town! Will book again."</p>
-        <span>- Megan T.</span>
-      </div>
-    </div>
-  </section>
-
   <section id="contact">
     <h2>Contact Us</h2>
     <p>Email: info@yourbusiness.com</p>
     <p>Phone: (123) 456-7890</p>
-    <p>Address: 123 Beauty Lane, Glamour City, ST 12345</p>
   </section>
 
   <footer>
     <p>&copy; 2024 Business Name. All rights reserved.</p>
   </footer>
 
-  <!-- JavaScript for Booking Logic -->
+  <!-- JavaScript for Real-Time Updates from Admin Settings and Auto-Fill Date/Time -->
   <script>
-    document.getElementById('booking-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const name = document.getElementById('name').value;
-      const date = document.getElementById('date').value;
-      const time = document.getElementById('time-slot').value;
-      const details = document.getElementById('details').value;
-      if (name && date && time && details) {
-        // Simulate saving appointment data (later linked to hidden page)
-        console.log(`Appointment booked: ${name} on ${date} at ${time}. Details: ${details}`);
-        document.getElementById('booking-form').reset();
-        document.getElementById('confirmation-message').style.display = 'block';
+    document.addEventListener('DOMContentLoaded', () => {
+      const settings = JSON.parse(localStorage.getItem('adminSettings')) || {};
+      if (settings.businessName) document.getElementById('business-name').textContent = settings.businessName;
+      if (settings.primaryColor) document.documentElement.style.setProperty('--primary-color', settings.primaryColor);
+      if (settings.fontChoice) document.body.style.fontFamily = settings.fontChoice;
+      if (settings.servicePricing) {
+        const prices = settings.servicePricing.split('\n');
+        prices.forEach(priceLine => {
+          const [service, price] = priceLine.split(':');
+          if (service && price) {
+            const serviceId = service.trim().toLowerCase().replace(' ', '-') + '-price';
+            const element = document.getElementById(serviceId);
+            if (element) {
+              element.textContent = price.trim();
+            }
+          }
+        });
       }
+      if (settings.sectionVisibility) {
+        document.getElementById('makeup-service').style.display = settings.sectionVisibility.makeup ? 'block' : 'none';
+        document.getElementById('hair-service').style.display = settings.sectionVisibility.hair ? 'block' : 'none';
+        document.getElementById('lash-service').style.display = settings.sectionVisibility.lash ? 'block' : 'none';
+      }
+
+      // Automatically fill in the selected date and time
+      const dateInput = document.getElementById('date');
+      const timeSlotSelect = document.getElementById('time-slot');
+      const calendarDiv = document.getElementById('calendar');
+
+      calendarDiv.addEventListener('click', (e) => {
+        const selectedDate = new Date().toISOString().split('T')[0]; // Mocked selected date
+        dateInput.value = selectedDate;
+        timeSlotSelect.innerHTML = `
+          <option value="09:00">9:00 AM</option>
+          <option value="10:00">10:00 AM</option>
+          <option value="11:00">11:00 AM</option>
+          <option value="12:00">12:00 PM</option>
+          <option value="13:00">1:00 PM</option>
+          <option value="14:00">2:00 PM</option>
+          <option value="15:00">3:00 PM</option>
+        `;
+      });
+
+      timeSlotSelect.addEventListener('change', () => {
+        const selectedTime = timeSlotSelect.value;
+        if (selectedTime) {
+          timeSlotSelect.value = selectedTime;
+        }
+      });
     });
   </script>
 </body>
 </html>
 
+ 
