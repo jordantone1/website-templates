@@ -1,12 +1,12 @@
-<!-- Acuity Scheduling Template for Beauty Professionals -->
+<!-- Simple Booking Website Template with Hidden Admin and Appointments Pages -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Beauty Booking | Business Name</title>
+  <title>Business Booking | Welcome</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
@@ -21,9 +21,9 @@
   </header>
 
   <section id="hero">
-    <h2>Your Beauty Journey Starts Here</h2>
-    <p>Book your appointment today and feel your best.</p>
-    <a href="#booking" class="btn">Schedule Appointment</a>
+    <h2>Welcome to Our Booking Service</h2>
+    <p>Schedule your appointment today and experience excellence.</p>
+    <a href="#booking" class="btn">Book an Appointment</a>
   </section>
 
   <section id="services">
@@ -49,27 +49,27 @@
 
   <section id="booking">
     <h2>Book an Appointment</h2>
-    <p>Click the button below to schedule your appointment through Acuity Scheduling.</p>
-    <!-- CLIENT CUSTOMIZATION: Replace this link with your Acuity Scheduling booking link -->
-    <a href="https://yourbusiness.as.me" target="_blank" class="btn">Book Now</a>
+    <p>Select a date and time that works for you.</p>
+    <div id="calendar"></div>
+    <form id="booking-form">
+      <label for="name">Full Name:</label>
+      <input type="text" id="name" required>
+      <label for="details">Appointment Details:</label>
+      <textarea id="details" required></textarea>
+      <button type="submit" class="btn">Confirm Appointment</button>
+    </form>
   </section>
 
   <section id="contact">
     <h2>Contact Us</h2>
     <p>Email: info@yourbusiness.com</p>
     <p>Phone: (123) 456-7890</p>
-    <div class="social-links">
-      <a href="#">Instagram</a>
-      <a href="#">Facebook</a>
-      <a href="#">TikTok</a>
-    </div>
   </section>
 
   <footer>
     <p>&copy; 2024 Business Name. All rights reserved.</p>
   </footer>
 
-  <!-- Link to External JavaScript File -->
-  <script src="js/script.js"></script>
+  <script src="calendar.js"></script>
 </body>
 </html>
