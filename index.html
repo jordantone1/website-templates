@@ -71,18 +71,6 @@
   <div id="popup-calendar">
     <h2>Select Date and Time</h2>
     <div id="calendar"></div>
-    <form id="popup-booking-form">
-      <label for="name">Full Name:</label>
-      <input type="text" id="name" placeholder="Enter your name" required>
-      <label for="selected-date">Selected Date:</label>
-      <input type="text" id="selected-date" readonly required>
-      <label for="selected-time">Selected Time:</label>
-      <input type="text" id="selected-time" readonly required>
-      <label for="details">Appointment Details:</label>
-      <textarea id="details" placeholder="Any additional details..." required></textarea>
-      <button type="submit" class="btn">Confirm Appointment</button>
-      <button type="button" id="cancel-btn" class="btn">Cancel</button>
-    </form>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
@@ -91,7 +79,6 @@
       const bookBtn = document.getElementById('book-appointment-btn');
       const popup = document.getElementById('popup-calendar');
       const overlay = document.getElementById('popup-overlay');
-      const cancelBtn = document.getElementById('cancel-btn');
       const blockedSlots = JSON.parse(localStorage.getItem('blockedSlots')) || {};
 
       bookBtn.addEventListener('click', () => {
@@ -99,18 +86,32 @@
         overlay.style.display = 'block';
       });
 
-      cancelBtn.addEventListener('click', () => {
-        popup.style.display = 'none';
-        overlay.style.display = 'none';
-      });
-
       const calendarEl = document.getElementById('calendar');
       const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         selectable: true,
         select: function (info) {
-          document.getElementById('selected-date').value = info.startStr;
-          document.getElementById('selected-time').value = 'Select a Time Slot';
+          const selectedDate = info.startStr;
+          const timeSlot = prompt(`You selected ${selectedDate}. Enter preferred time (HH:MM):`);
+          if (timeSlot) {
+            const name = prompt('Enter your full name:');
+            const details = prompt('Enter appointment details:');
+
+            if (!blockedSlots[selectedDate]) blockedSlots[selectedDate] = [];
+            blockedSlots[selectedDate].push(timeSlot);
+            localStorage.setItem('blockedSlots', JSON.stringify(blockedSlots));
+
+            calendar.addEvent({
+              title: 'Booked',
+              start: `${selectedDate}T${timeSlot}`,
+              display: 'background',
+              color: '#ff4d4d'
+            });
+
+            alert('Appointment confirmed!');
+            popup.style.display = 'none';
+            overlay.style.display = 'none';
+          }
         },
         events: Object.entries(blockedSlots).flatMap(([date, times]) => {
           return times.map(time => {
@@ -124,29 +125,6 @@
         })
       });
       calendar.render();
-
-      document.getElementById('popup-booking-form').adEventListener('submit', function (e) {
-        e.preventDefault();
-        const date = document.getElementById('selected-date').value;
-        const time = document.getElementById('selected-time').value;
-        const name = document.getElementById('name').value;
-        const details = document.getElementById('details').value;
-
-        if (!blockedSlots[date]) blockedSlots[date] = [];
-        blockedSlots[date].push(time);
-        localStorage.setItem('blockedSlots', JSON.stringify(blockedSlots));
-
-        calendar.addEvent({
-          title: 'Booked',
-          start: `${date}T${time}`,
-          display: 'background',
-          color: '#ff4d4d'
-        });
-
-        document.getElementById('popup-calendar').style.display = 'none';
-        document.getElementById('popup-overlay').style.display = 'none';
-        e.target.reset();
-      });
     });
   </script>
 </body>
