@@ -1,0 +1,163 @@
+<!-- Acuity Scheduling Template for Beauty Professionals -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beauty Booking | Business Name</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <h1>Business Name</h1>
+      <ul>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#booking">Book Now</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section id="hero">
+    <h2>Your Beauty Journey Starts Here</h2>
+    <p>Book your appointment today and feel your best.</p>
+    <a href="#booking" class="btn">Schedule Appointment</a>
+  </section>
+
+  <section id="services">
+    <h2>Our Services</h2>
+    <div class="service-list">
+      <div class="service-item">
+        <h3>Lash Extensions</h3>
+        <p>Classic, Hybrid, and Volume Lashes</p>
+        <span>$100+</span>
+      </div>
+      <div class="service-item">
+        <h3>Hair Styling</h3>
+        <p>Cut, Color, and Styling Services</p>
+        <span>$80+</span>
+      </div>
+      <div class="service-item">
+        <h3>Makeup Application</h3>
+        <p>Full-face makeup for any occasion</p>
+        <span>$120+</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="booking">
+    <h2>Book an Appointment</h2>
+    <p>Click the button below to schedule your appointment through Acuity Scheduling.</p>
+    <a href="https://your-acuity-link.com" target="_blank" class="btn">Book Now</a>
+  </section>
+
+  <section id="contact">
+    <h2>Contact Us</h2>
+    <p>Email: info@yourbusiness.com</p>
+    <p>Phone: (123) 456-7890</p>
+    <div class="social-links">
+      <a href="#">Instagram</a>
+      <a href="#">Facebook</a>
+      <a href="#">TikTok</a>
+    </div>
+  </section>
+
+  <footer>
+    <p>&copy; 2024 Business Name. All rights reserved.</p>
+  </footer>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
+
+/* CSS - style.css */
+:root {
+  --primary-color: #f4a261;
+  --secondary-color: #264653;
+  --font-family: 'Arial, sans-serif';
+}
+
+body {
+  font-family: var(--font-family);
+  margin: 0;
+  background-color: #f5f5f5;
+}
+
+header {
+  background-color: var(--secondary-color);
+  color: white;
+  padding: 1rem;
+  text-align: center;
+}
+
+nav ul {
+  list-style: none;
+  padding: 0;
+}
+
+nav ul li {
+  display: inline;
+  margin: 0 1rem;
+}
+
+nav ul li a {
+  color: white;
+  text-decoration: none;
+}
+
+#hero {
+  text-align: center;
+  padding: 4rem 2rem;
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.service-list {
+  display: flex;
+  justify-content: space-around;
+  padding: 2rem;
+  flex-wrap: wrap;
+}
+
+.service-item {
+  background: white;
+  padding: 1rem;
+  margin: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 250px;
+}
+
+#booking, #contact {
+  padding: 2rem;
+  text-align: center;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--secondary-color);
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  margin-top: 1rem;
+}
+
+footer {
+  background-color: var(--secondary-color);
+  color: white;
+  padding: 1rem;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .service-list {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* JS - script.js */
+console.log('Acuity Scheduling Template Loaded Successfully');
