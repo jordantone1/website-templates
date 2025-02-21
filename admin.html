@@ -72,18 +72,9 @@
                 });
               } else {
                 localStorage.setItem('products', JSON.stringify(productDetails));
-                showPrompt('Would you like to upload cycling photos? (Yes/No)', (uploadPhotos) => {
-                  if (uploadPhotos.toLowerCase() === 'yes') {
-                    showPrompt('How many photos for the left side?', (leftCount) => {
-                      showPrompt('How many photos for the right side?', (rightCount) => {
-                        localStorage.setItem('leftPhotos', leftCount);
-                        localStorage.setItem('rightPhotos', rightCount);
-                        setupGoogleSheets();
-                      });
-                    });
-                  } else {
-                    setupGoogleSheets();
-                  }
+                showPrompt('Choose a background color for your site (e.g., #ffffff, #f0f0f0):', (color) => {
+                  localStorage.setItem('backgroundColor', color);
+                  setupGoogleSheets();
                 });
               }
             }
@@ -105,17 +96,35 @@
     }
 
     function setupGoogleSheets() {
-      showPrompt('Authorize and set up Google Sheets for bookings. (Type "OK" to proceed)', (response) => {
-        if (response.toLowerCase() === 'ok') {
-          // Placeholder for Google Sheets authorization and linking logic
-          localStorage.setItem('googleSheetLinked', true);
-          showPrompt('Perform a mock appointment booking to confirm integration. (Type "Done" when finished)', (done) => {
-            if (done.toLowerCase() === 'done') {
-              alert('Setup Complete! Your booking system is now ready. You can access the full site.');
-              localStorage.setItem('setupComplete', true);
-              window.location.href = 'index.html';
-            }
+      showPrompt('Enter your email to receive booking updates:', (email) => {
+        localStorage.setItem('customerEmail', email);
+        // Placeholder for Google Sheets creation and authorization logic
+        localStorage.setItem('googleSheetLinked', true);
+        uploadPhotos();
+      });
+    }
+
+    function uploadPhotos() {
+      showPrompt('Would you like to upload cycling photos? (Yes/No)', (uploadPhotos) => {
+        if (uploadPhotos.toLowerCase() === 'yes') {
+          showPrompt('How many photos for the left side?', (leftCount) => {
+            showPrompt('How many photos for the right side?', (rightCount) => {
+              localStorage.setItem('leftPhotos', leftCount);
+              localStorage.setItem('rightPhotos', rightCount);
+              mockBookingTest();
+            });
           });
+        } else {
+          mockBookingTest();
+        }
+      });
+    }
+
+    function mockBookingTest() {
+      showPrompt('Please complete a mock booking to ensure everything works correctly. Click OK to proceed to the calendar.', (response) => {
+        if (response.toLowerCase() === 'ok') {
+          alert('Redirecting to mock booking page...');
+          window.location.href = 'index.html';
         }
       });
     }
