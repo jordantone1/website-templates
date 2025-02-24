@@ -13,7 +13,8 @@
       images: [],
       backgroundImage: '',
       googleSheetURL: '',
-      availability: {}
+      availability: {},
+      services: []
     };
 
     // Load data by fetching the Google Sheet URL directly from the embedded script
@@ -35,6 +36,7 @@
           if (values.length > 1) {
             displayBusinessInfo(values[1]);
             extractAvailability(values);
+            extractServices(values);
           }
         })
         .catch(error => console.error('Error fetching business data:', error));
@@ -57,17 +59,31 @@
       }
     }
 
-    // Extract availability data from Google Sheet
-    function extractAvailability(data) {
-      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      days.forEach((day, index) => {
-        if (data[index + 2]) { // Assuming availability starts from row 3
-          const hours = data[index + 2][0];
-          if (hours && hours.includes('-')) {
-            businessDetails.availability[day] = hours;
-          }
+    // Extract services from the sheet
+    function extractServices(data) {
+      for (let i = 8; i < data.length; i++) { // Assuming services start from row 9
+        if (data[i][0] && data[i][1]) {
+          businessDetails.services.push({
+            name: data[i][0],
+            price: data[i][1]
+          });
         }
+      }
+      displayServiceOptions();
+    }
+
+    // Display service options dynamically
+    function displayServiceOptions() {
+      const serviceContainer = document.getElementById('service-options');
+      businessDetails.services.forEach(service => {
+        const option = document.createElement('div');
+        option.innerHTML = `<label><input type='radio' name='service' value='${service.name} - $${service.price}'> ${service.name} - $${service.price}</label>`;
+        serviceContainer.appendChild(option);
       });
+      // Add custom service field
+      const customOption = document.createElement('div');
+      customOption.innerHTML = `<label>Other: <input type='text' id='custom-service' placeholder='Enter custom service'></label>`;
+      serviceContainer.appendChild(customOption);
     }
 
     // Add social media links dynamically
@@ -81,76 +97,34 @@
       container.appendChild(link);
     }
 
-    // Fetch appointments from Google Sheet
-    function fetchAppointments() {
-      fetch(businessDetails.googleSheetURL)
-        .then(response => response.json())
-        .then(data => {
-          displayAppointments(data.values.slice(9)); // Skip initial rows for availability and business info
-        })
-        .catch(error => console.error('Error fetching appointments:', error));
-    }
+    // Handle booking submission
+    function submitBooking(day, time) {
+      const phone = document.getElementById('phone-number').value;
+      const selectedService = document.querySelector('input[name="service"]:checked');
+      let service = selectedService ? selectedService.value : document.getElementById('custom-service').value;
 
-    // Display available appointments based on availability
-    function displayAppointments(appointments) {
-      const bookingSection = document.getElementById('booking-section');
-      bookingSection.innerHTML = '';
-
-      const days = Object.keys(businessDetails.availability);
-
-      if (days.length === 0) {
-        bookingSection.innerHTML = '<p>No availability has been set by this business.</p>';
+      if (!phone || !service) {
+        alert('Please provide a phone number and select a service.');
         return;
       }
 
-      days.forEach(day => {
-        const times = businessDetails.availability[day].split('-');
-        const startTime = parseTime(times[0].trim());
-        const endTime = parseTime(times[1].trim());
-        const currentDate = new Date();
-
-        while (startTime < endTime) {
-          const slot = `${day}: ${formatTime(startTime)}`;
-          if (!isSlotBooked(appointments, day, formatTime(startTime))) {
-            const slotElement = document.createElement('div');
-            slotElement.classList.add('appointment-slot');
-            slotElement.innerHTML = `<p>${slot}</p>
-              <button onclick="bookAppointment('${day}', '${formatTime(startTime)}')">Book Now</button>`;
-            bookingSection.appendChild(slotElement);
-          }
-          startTime.setMinutes(startTime.getMinutes() + 30); // Increment by 30 mins
-        }
-      });
-    }
-
-    // Parse time from string to Date object
-    function parseTime(timeStr) {
-      const date = new Date();
-      const [hours, minutesPart] = timeStr.split(':');
-      const minutes = parseInt(minutesPart);
-      const isPM = timeStr.toLowerCase().includes('pm');
-      date.setHours(parseInt(hours) + (isPM && hours != 12 ? 12 : 0));
-      date.setMinutes(minutes);
-      return date;
-    }
-
-    // Format time back to string
-    function formatTime(date) {
-      let hours = date.getHours();
-      const minutes = date.getMinutes();
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12 || 12;
-      return `${hours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
-    }
-
-    // Check if the slot is already booked
-    function isSlotBooked(appointments, day, time) {
-      return appointments.some(app => app[0] === day && app[1] === time && app[2] === 'Booked');
-    }
-
-    // Handle booking confirmation
-    function bookAppointment(day, time) {
-      alert(`You have successfully booked an appointment on ${day} at ${time}.`);
+      fetch(businessDetails.googleSheetURL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'bookAppointment',
+          date: day,
+          time: time,
+          phone: phone,
+          service: service
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      })
+        .then(response => response.text())
+        .then(message => {
+          alert(message);
+          location.reload();
+        })
+        .catch(error => console.error('Error booking appointment:', error));
     }
   </script>
   <style>
@@ -196,8 +170,197 @@
     <p>Loading available appointments...</p>
   </div>
 
+  <h3>Select Service</h3>
+  <div id="service-options"></div>
+
+  <h3>Enter Phone Number</h3>
+  <input type="text" id="phone-number" placeholder="Enter Phone Number">
+
   <!-- Hidden element to store the linked Google Sheet URL -->
   <div id="googleSheetURL" style="display: none;">YOUR_GOOGLE_SHEET_URL</div>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Booking Page</title>
+  <script>
+    let businessDetails = {
+      name: '',
+      phone: '',
+      address: '',
+      socialMedia: {},
+      images: [],
+      backgroundImage: '',
+      googleSheetURL: '',
+      availability: {},
+      services: []
+    };
+
+    // Load data by fetching the Google Sheet URL directly from the embedded script
+    window.onload = function() {
+      const embeddedSheetURL = document.getElementById('googleSheetURL').textContent;
+      if (embeddedSheetURL) {
+        businessDetails.googleSheetURL = embeddedSheetURL;
+        fetchBusinessData();
+        fetchAppointments();
+      }
+    };
+
+    // Fetch business data from Google Sheet
+    function fetchBusinessData() {
+      fetch(businessDetails.googleSheetURL)
+        .then(response => response.json())
+        .then(data => {
+          const values = data.values;
+          if (values.length > 1) {
+            displayBusinessInfo(values[1]);
+            extractAvailability(values);
+            extractServices(values);
+          }
+        })
+        .catch(error => console.error('Error fetching business data:', error));
+    }
+
+    // Display fetched business info
+    function displayBusinessInfo(data) {
+      document.getElementById('business-name').innerText = data[0] || 'Business Name';
+      document.getElementById('business-phone').innerText = data[1] || 'Phone Number';
+      document.getElementById('business-address').innerText = data[2] || 'Business Address';
+
+      if (data[3]) addSocialMediaLink('Instagram', data[3]);
+      if (data[4]) addSocialMediaLink('TikTok', data[4]);
+      if (data[5]) addSocialMediaLink('Facebook', data[5]);
+
+      if (data[6]) {
+        document.body.style.backgroundImage = `url('${data[6]}')`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+      }
+    }
+
+    // Extract services from the sheet
+    function extractServices(data) {
+      for (let i = 8; i < data.length; i++) { // Assuming services start from row 9
+        if (data[i][0] && data[i][1]) {
+          businessDetails.services.push({
+            name: data[i][0],
+            price: data[i][1]
+          });
+        }
+      }
+      displayServiceOptions();
+    }
+
+    // Display service options dynamically
+    function displayServiceOptions() {
+      const serviceContainer = document.getElementById('service-options');
+      businessDetails.services.forEach(service => {
+        const option = document.createElement('div');
+        option.innerHTML = `<label><input type='radio' name='service' value='${service.name} - $${service.price}'> ${service.name} - $${service.price}</label>`;
+        serviceContainer.appendChild(option);
+      });
+      // Add custom service field
+      const customOption = document.createElement('div');
+      customOption.innerHTML = `<label>Other: <input type='text' id='custom-service' placeholder='Enter custom service'></label>`;
+      serviceContainer.appendChild(customOption);
+    }
+
+    // Add social media links dynamically
+    function addSocialMediaLink(platform, url) {
+      const container = document.getElementById('social-media');
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.innerText = platform;
+      link.style = 'margin: 0 10px;';
+      container.appendChild(link);
+    }
+
+    // Handle booking submission
+    function submitBooking(day, time) {
+      const phone = document.getElementById('phone-number').value;
+      const selectedService = document.querySelector('input[name="service"]:checked');
+      let service = selectedService ? selectedService.value : document.getElementById('custom-service').value;
+
+      if (!phone || !service) {
+        alert('Please provide a phone number and select a service.');
+        return;
+      }
+
+      fetch(businessDetails.googleSheetURL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'bookAppointment',
+          date: day,
+          time: time,
+          phone: phone,
+          service: service
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      })
+        .then(response => response.text())
+        .then(message => {
+          alert(message);
+          location.reload();
+        })
+        .catch(error => console.error('Error booking appointment:', error));
+    }
+  </script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    .header {
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 20px;
+    }
+    .appointment-slot {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 5px;
+    }
+    button {
+      padding: 8px 16px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 id="business-name">Loading Business Name...</h1>
+    <p id="business-phone">Loading Phone Number...</p>
+    <p id="business-address">Loading Address...</p>
+  </div>
+
+  <div id="social-media"></div>
+
+  <h2>Book an Appointment</h2>
+  <div id="booking-section">
+    <p>Loading available appointments...</p>
+  </div>
+
+  <h3>Select Service</h3>
+  <div id="service-options"></div>
+
+  <h3>Enter Phone Number</h3>
+  <input type="text" id="phone-number" placeholder="Enter Phone Number">
+
+  <!-- Hidden element to store the linked Google Sheet URL -->
+  <div id="googleSheetURL" style="display: none;">YOUR_GOOGLE_SHEET_URL</div>
+</body>
+</html>
+
  
