@@ -4,131 +4,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Client Booking Page</title>
-  <script>
-    let businessDetails = {
-      name: 'Your Business Name',
-      phone: '123-456-7890',
-      address: '123 Main Street, City, State',
-      socialMedia: {
-        Instagram: 'https://instagram.com/yourbusiness',
-        TikTok: 'https://tiktok.com/@yourbusiness',
-        Facebook: 'https://facebook.com/yourbusiness'
-      },
-      images: ['https://example.com/image1.jpg', 'https://example.com/image2.jpg'],
-      backgroundImage: 'https://example.com/background.jpg',
-      availability: {
-        '2024-03-10': ['09:00 AM', '10:00 AM'],
-        '2024-03-11': ['11:00 AM', '01:00 PM']
-      },
-      services: [
-        'Haircut - $50',
-        'Coloring - $80',
-        'Styling - $40'
-      ],
-      bookings: []
-    };
-
-    window.onload = function() {
-      displayBusinessInfo();
-    };
-
-    function displayBusinessInfo() {
-      document.getElementById('business-name').innerText = businessDetails.name;
-      document.getElementById('business-phone').innerText = businessDetails.phone;
-      document.getElementById('business-address').innerText = businessDetails.address;
-
-      for (const platform in businessDetails.socialMedia) {
-        addSocialMediaLink(platform, businessDetails.socialMedia[platform]);
-      }
-
-      if (businessDetails.backgroundImage) {
-        document.body.style.backgroundImage = `url('${businessDetails.backgroundImage}')`;
-        document.body.style.backgroundSize = 'cover';
-        document.body.style.backgroundPosition = 'center';
-      }
-    }
-
-    function addSocialMediaLink(platform, url) {
-      const container = document.getElementById('social-media');
-      const link = document.createElement('a');
-      link.href = url;
-      link.target = '_blank';
-      link.innerText = platform;
-      link.style = 'margin: 0 10px;';
-      container.appendChild(link);
-    }
-
-    function openCalendar() {
-      document.getElementById('calendar').style.display = 'block';
-      generateCalendar();
-    }
-
-    function generateCalendar() {
-      const calendarDiv = document.getElementById('calendar-dates');
-      calendarDiv.innerHTML = '';
-      const today = new Date();
-      const maxBookingDate = new Date();
-      maxBookingDate.setMonth(maxBookingDate.getMonth() + 3);
-
-      for (let i = 0; i < 90; i++) {
-        const date = new Date();
-        date.setDate(today.getDate() + i);
-        const dateStr = date.toISOString().split('T')[0];
-        const dayButton = document.createElement('button');
-        dayButton.innerText = date.toDateString();
-
-        if (date < new Date(today.getTime() + 24 * 60 * 60 * 1000) || date > maxBookingDate || businessDetails.availability[dateStr]) {
-          dayButton.disabled = true;
-          dayButton.style.backgroundColor = '#ccc';
-        } else {
-          dayButton.onclick = function() {
-            selectDate(dateStr);
-          };
-        }
-        calendarDiv.appendChild(dayButton);
-      }
-    }
-
-    function selectDate(date) {
-      document.getElementById('selected-date').innerText = `Selected Date: ${date}`;
-      generateTimeSlots(date);
-    }
-
-    function generateTimeSlots(date) {
-      const timeSlotDiv = document.getElementById('time-slots');
-      timeSlotDiv.innerHTML = '';
-      const availableTimes = ['09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM', '01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM', '04:00 PM', '04:30 PM'];
-
-      availableTimes.forEach(time => {
-        if (businessDetails.availability[date] && businessDetails.availability[date].includes(time)) {
-          return;
-        }
-        const timeButton = document.createElement('button');
-        timeButton.innerText = time;
-        timeButton.onclick = function() {
-          selectTime(date, time);
-        };
-        timeSlotDiv.appendChild(timeButton);
-      });
-    }
-
-    function selectTime(date, time) {
-      const phone = prompt('Enter your phone number:');
-      const selectedServices = prompt(`Select from: \n${businessDetails.services.join('\n')}`);
-      if (phone && selectedServices) {
-        alert(`Booking confirmed for ${date} at ${time} for ${selectedServices}.`);
-      }
-    }
-  </script>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
       padding: 20px;
+      margin: 0;
     }
     .header {
-      background-color: rgba(255, 255, 255, 0.8);
+      background-color: #2C2C2C;
+      color: white;
       padding: 20px;
+    }
+    .footer {
+      background-color: #2C2C2C;
+      color: white;
+      padding: 10px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
+    .footer a {
+      color: white;
+      text-decoration: underline;
     }
     button {
       padding: 8px 16px;
@@ -151,28 +49,143 @@
       background-color: white;
       width: 80%;
     }
+    .services-list {
+      margin-bottom: 20px;
+    }
+    #left-images, #right-images {
+      width: 20%;
+      float: left;
+    }
+    #right-images {
+      float: right;
+    }
+    #main-content {
+      width: 60%;
+      margin: 0 auto;
+    }
+    #social-media img {
+      width: 30px;
+      margin: 0 10px;
+      cursor: pointer;
+    }
+    @media (max-width: 768px) {
+      #left-images, #right-images, #main-content {
+        width: 100%;
+        float: none;
+      }
+    }
   </style>
+  <script>
+    let businessDetails = {
+      name: 'Your Business Name',
+      phone: '123-456-7890',
+      email: 'contact@yourbusiness.com',
+      address: '123 Main Street, City, State',
+      socialMedia: {
+        Instagram: 'https://instagram.com/yourbusiness',
+        TikTok: 'https://tiktok.com/@yourbusiness',
+        Facebook: 'https://facebook.com/yourbusiness'
+      },
+      images: {
+        left: ['https://example.com/image1.jpg', 'https://example.com/image2.jpg'],
+        right: ['https://example.com/image3.jpg', 'https://example.com/image4.jpg']
+      },
+      backgroundImage: 'https://example.com/background.jpg',
+      services: [
+        'Haircut - $50',
+        'Coloring - $80',
+        'Styling - $40'
+      ],
+    };
+
+    let calendarVisible = false;
+    let leftImageIndex = 0;
+    let rightImageIndex = 0;
+
+    window.onload = function() {
+      displayBusinessInfo();
+      startImageCycle('left');
+      startImageCycle('right');
+    };
+
+    function displayBusinessInfo() {
+      document.getElementById('business-name').innerText = businessDetails.name;
+      document.getElementById('business-phone').innerText = businessDetails.phone;
+      document.getElementById('business-address').innerText = businessDetails.address;
+      document.getElementById('business-email').innerText = businessDetails.email;
+      
+      const servicesList = document.getElementById('services-list');
+      businessDetails.services.forEach(service => {
+        const serviceItem = document.createElement('p');
+        serviceItem.innerText = service;
+        servicesList.appendChild(serviceItem);
+      });
+
+      for (const platform in businessDetails.socialMedia) {
+        addSocialMediaLink(platform, businessDetails.socialMedia[platform]);
+      }
+
+      if (businessDetails.backgroundImage) {
+        document.body.style.backgroundImage = `url('${businessDetails.backgroundImage}')`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+      }
+    }
+
+    function addSocialMediaLink(platform, url) {
+      const container = document.getElementById('social-media');
+      const img = document.createElement('img');
+      img.src = `icons/${platform.toLowerCase()}.png`; // Assuming icons are stored in an 'icons' folder
+      img.alt = platform;
+      img.onclick = () => window.open(url, '_blank');
+      container.appendChild(img);
+    }
+
+    function startImageCycle(side) {
+      const images = businessDetails.images[side];
+      setInterval(() => {
+        const imgElement = document.getElementById(`${side}-images`);
+        if (side === 'left') {
+          leftImageIndex = (leftImageIndex + 1) % images.length;
+          imgElement.src = images[leftImageIndex];
+        } else {
+          rightImageIndex = (rightImageIndex + 1) % images.length;
+          imgElement.src = images[rightImageIndex];
+        }
+      }, 5000);
+    }
+
+    function toggleCalendar() {
+      calendarVisible = !calendarVisible;
+      document.getElementById('calendar').style.display = calendarVisible ? 'block' : 'none';
+    }
+  </script>
 </head>
 <body>
   <div class="header">
     <h1 id="business-name"></h1>
     <p id="business-phone"></p>
     <p id="business-address"></p>
+    <p id="business-email"></p>
   </div>
 
-  <div id="social-media"></div>
+  <div id="left-images"><img src="" alt="Left Image" id="left-images"></div>
+  <div id="main-content">
+    <div id="social-media"></div>
+    <div class="services-list" id="services-list"></div>
+    <button onclick="toggleCalendar()">Book an Appointment</button>
+    <div id="calendar">
+      <h3>Select a Date</h3>
+      <div id="calendar-dates"></div>
+      <h3 id="selected-date"></h3>
+      <div id="time-slots"></div>
+    </div>
+  </div>
+  <div id="right-images"><img src="" alt="Right Image" id="right-images"></div>
 
-  <h2>Book an Appointment</h2>
-  <button onclick="openCalendar()">Book an Appointment</button>
-
-  <div id="calendar">
-    <h3>Select a Date</h3>
-    <div id="calendar-dates"></div>
-    <h3 id="selected-date"></h3>
-    <div id="time-slots"></div>
+  <div class="footer">
+    <a href="mailto:contact@yourbusiness.com">Contact Us</a>
   </div>
 </body>
-</html>
-
 </html>
 
