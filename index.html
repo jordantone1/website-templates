@@ -1,5 +1,110 @@
-<script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Booking Page</title>
+  <script>
+    let businessDetails = {
+      name: '',
+      phone: '',
+      address: '',
+      socialMedia: {},
+      images: [],
+      backgroundImage: '',
+      googleSheetURL: '',
+      availability: {},
+      services: [],
+      bookings: []
+    };
+
+    window.onload = function() {
+      const embeddedSheetURL = document.getElementById('googleSheetURL').textContent;
+      if (embeddedSheetURL) {
+        businessDetails.googleSheetURL = embeddedSheetURL;
+        fetchBusinessData();
+        fetchAppointments();
+      }
+    };
+
+    function fetchBusinessData() {
+      fetch(businessDetails.googleSheetURL)
+        .then(response => response.json())
+        .then(data => {
+          const values = data.values;
+          if (values.length > 1) {
+            displayBusinessInfo(values[1]);
+            extractAvailability(values);
+            extractBookings(values);
+            extractServices(values);
+          }
+        })
+        .catch(error => console.error('Error fetching business data:', error));
+    }
+
+    function extractAvailability(data) {
+      businessDetails.availability = {};
+      data.forEach(row => {
+        const date = row[0];
+        const time = row[1];
+        const status = row[4];
+        if (status === 'Booked') {
+          if (!businessDetails.availability[date]) {
+            businessDetails.availability[date] = [];
+          }
+          businessDetails.availability[date].push(time);
+        }
+      });
+    }
+
+    function extractBookings(data) {
+      businessDetails.bookings = data.slice(1);
+    }
+
+    function extractServices(data) {
+      businessDetails.services = [];
+      for (let i = 1; i < data.length; i++) {
+        const service = data[i][5];
+        const price = data[i][6];
+        if (service && price) {
+          businessDetails.services.push(`${service} - $${price}`);
+        }
+      }
+    }
+
+    function displayBusinessInfo(data) {
+      document.getElementById('business-name').innerText = data[0] || 'Business Name';
+      document.getElementById('business-phone').innerText = data[1] || 'Phone Number';
+      document.getElementById('business-address').innerText = data[2] || 'Business Address';
+
+      if (data[3]) addSocialMediaLink('Instagram', data[3]);
+      if (data[4]) addSocialMediaLink('TikTok', data[4]);
+      if (data[5]) addSocialMediaLink('Facebook', data[5]);
+
+      if (data[6]) {
+        document.body.style.backgroundImage = `url('${data[6]}')`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+      }
+    }
+
+    function addSocialMediaLink(platform, url) {
+      const container = document.getElementById('social-media');
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.innerText = platform;
+      link.style = 'margin: 0 10px;';
+      container.appendChild(link);
+    }
+
+    <script>
   let currentDisplayedMonth = new Date();
+
+  function openCalendar() {
+    document.getElementById('calendar').style.display = 'block';
+    generateCalendar();
+  }
 
   function generateCalendar() {
     const calendarDiv = document.getElementById('calendar-dates');
@@ -10,44 +115,23 @@
     const currentMonth = new Date(currentDisplayedMonth.getFullYear(), currentDisplayedMonth.getMonth(), 1);
     const lastDate = new Date(currentDisplayedMonth.getFullYear(), currentDisplayedMonth.getMonth() + 1, 0);
 
-    // Update header with current month and year
     document.getElementById('calendar-month-year').innerText = `${currentMonth.toLocaleString('default', { month: 'long' })} ${currentMonth.getFullYear()}`;
 
-    // Add weekday headers
-    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const headerRow = document.createElement('div');
-    headerRow.classList.add('calendar-header');
-    weekdays.forEach(day => {
-      const dayElement = document.createElement('div');
-      dayElement.innerText = day;
-      headerRow.appendChild(dayElement);
-    });
-    calendarDiv.appendChild(headerRow);
-
-    let date = new Date(currentMonth);
-    date.setDate(1 - date.getDay());
-
-    while (date <= lastDate || date.getDay() !== 0) {
+    for (let day = 1; day <= lastDate.getDate(); day++) {
+      const date = new Date(currentDisplayedMonth.getFullYear(), currentDisplayedMonth.getMonth(), day);
       const dateStr = date.toISOString().split('T')[0];
       const dayButton = document.createElement('button');
       dayButton.innerText = date.getDate();
 
-      if (
-        date < new Date(today.getTime() + 24 * 60 * 60 * 1000) ||
-        date > maxBookingDate ||
-        businessDetails.availability[dateStr] ||
-        date.getMonth() !== currentDisplayedMonth.getMonth()
-      ) {
+      if (date < new Date(today.getTime() + 24 * 60 * 60 * 1000) || date > maxBookingDate || businessDetails.availability[dateStr]) {
         dayButton.disabled = true;
         dayButton.style.backgroundColor = '#ccc';
       } else {
-        dayButton.onclick = function () {
+        dayButton.onclick = function() {
           selectDate(dateStr);
         };
       }
-
       calendarDiv.appendChild(dayButton);
-      date.setDate(date.getDate() + 1);
     }
   }
 
@@ -60,32 +144,113 @@
     currentDisplayedMonth.setMonth(currentDisplayedMonth.getMonth() + 1);
     generateCalendar();
   }
+
+  function selectDate(date) {
+    document.getElementById('selected-date').innerText = `Selected Date: ${date}`;
+    generateTimeSlots(date);
+  }
+
+  function generateTimeSlots(date) {
+    const timeSlotDiv = document.getElementById('time-slots');
+    timeSlotDiv.innerHTML = '';
+    const availableTimes = ['09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM', '01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM', '04:00 PM', '04:30 PM'];
+
+    availableTimes.forEach(time => {
+      if (businessDetails.availability[date] && businessDetails.availability[date].includes(time)) {
+        return;
+      }
+      const timeButton = document.createElement('button');
+      timeButton.innerText = time;
+      timeButton.onclick = function() {
+        selectTime(date, time);
+      };
+      timeSlotDiv.appendChild(timeButton);
+    });
+  }
+
+  function selectTime(date, time) {
+    const phone = prompt('Enter your phone number:');
+    const selectedServices = prompt('Enter the services you would like to book (separated by commas):');
+    if (phone && selectedServices) {
+      alert(`Booking confirmed for ${date} at ${time} for ${selectedServices}.`);
+    }
+  }
 </script>
 
-<style>
-  #calendar-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-  .nav-arrow {
-    cursor: pointer;
-    font-size: 1.5rem;
-    padding: 5px 10px;
-  }
-</style>
-
-<div id="calendar">
-  <div id="calendar-controls">
-    <span class="nav-arrow" onclick="previousMonth()">&#8592;</span>
-    <h3 id="calendar-month-year"></h3>
-    <span class="nav-arrow" onclick="nextMonth()">&#8594;</span>
-  </div>
-  <h3>Select a Date</h3>
-  <div id="calendar-dates"></div>
-  <h3 id="selected-date"></h3>
-  <div id="time-slots"></div>
+<!-- Add navigation arrows and update existing calendar header -->
+<div id="calendar-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+  <span style="cursor: pointer; font-size: 1.5rem; padding: 5px 10px;" onclick="previousMonth()">&#8592;</span>
+  <h3 id="calendar-month-year"></h3>
+  <span style="cursor: pointer; font-size: 1.5rem; padding: 5px 10px;" onclick="nextMonth()">&#8594;</span>
 </div>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    .header {
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 20px;
+    }
+    button {
+      padding: 8px 16px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #calendar {
+      display: none;
+      margin: 20px auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      background-color: white;
+      width: 80%;
+    }
+    .appointment-section {
+      margin-top: 20px;
+    }
+    .appointment-section h3 {
+      margin-bottom: 10px;
+    }
+    .input-field {
+      margin: 10px 0;
+    }
+    .input-field input {
+      padding: 10px;
+      width: 50%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 id="business-name">Loading Business Name...</h1>
+    <p id="business-phone">Loading Phone Number...</p>
+    <p id="business-address">Loading Address...</p>
+  </div>
+
+  <div id="social-media"></div>
+
+  <h2>Book an Appointment</h2>
+  <button onclick="openCalendar()">Book an Appointment</button>
+
+  <div id="calendar">
+    <h3>Select a Date</h3>
+    <div id="calendar-dates"></div>
+    <h3 id="selected-date"></h3>
+    <div id="time-slots"></div>
+  </div>
+
+  <button onclick="window.location.href='admin.html'">Go to Admin Page</button>
+
+  <div id="googleSheetURL" style="display: none;">YOUR_GOOGLE_SHEET_URL</div>
 
  
