@@ -5,11 +5,46 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Setup - Scheduling Template</title>
   <script>
+    let businessDetails = {
+      name: '',
+      phone: '',
+      address: '',
+      socialMedia: {},
+      images: []
+    };
+
+    // Function to handle the form submission
+    function submitBusinessInfo() {
+      businessDetails.name = document.getElementById('business-name').value;
+      businessDetails.phone = document.getElementById('phone').value;
+      businessDetails.address = document.getElementById('address').value;
+      businessDetails.socialMedia = {
+        instagram: document.getElementById('instagram').value,
+        tiktok: document.getElementById('tiktok').value,
+        facebook: document.getElementById('facebook').value
+      };
+
+      alert('Business information successfully saved!');
+      console.log(businessDetails);
+    }
+
+    // Function to handle image upload
+    function handleImageUpload(event) {
+      const files = event.target.files;
+      for (let i = 0; i < files.length; i++) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          businessDetails.images.push(e.target.result);
+        };
+        reader.readAsDataURL(files[i]);
+      }
+      alert('Images successfully uploaded!');
+    }
+
     // Function to handle Web App URL submission
     function linkGoogleSheet() {
       const webAppURL = document.getElementById('sheet-url').value;
       if (validateWebAppURL(webAppURL)) {
-        // Insert the provided Web App URL into the booking system dynamically
         updateClientSite(webAppURL);
         alert('Google Apps Script Web App successfully linked!');
       } else {
@@ -25,7 +60,6 @@
 
     // Function to update the client-facing site dynamically
     function updateClientSite(webAppURL) {
-      // This creates a script element that integrates the booking system with the provided Web App URL
       const script = document.createElement('script');
       script.type = 'text/javascript';
       script.textContent = `
@@ -49,8 +83,26 @@
 </head>
 <body>
   <h1>Admin Setup</h1>
+
+  <h2>Business Information</h2>
+  <input type="text" id="business-name" placeholder="Business Name" style="width: 300px;"><br>
+  <input type="text" id="phone" placeholder="Phone Number" style="width: 300px;"><br>
+  <input type="text" id="address" placeholder="Business Address" style="width: 300px;"><br>
+
+  <h2>Social Media Links</h2>
+  <input type="text" id="instagram" placeholder="Instagram Profile URL" style="width: 300px;"><br>
+  <input type="text" id="tiktok" placeholder="TikTok Profile URL" style="width: 300px;"><br>
+  <input type="text" id="facebook" placeholder="Facebook Profile URL" style="width: 300px;"><br>
+
+  <h2>Upload Business Images</h2>
+  <input type="file" id="image-upload" multiple onchange="handleImageUpload(event)"><br><br>
+
+  <button onclick="submitBusinessInfo()">Save Business Info</button>
+
+  <h2>Link Google Sheets</h2>
   <p>Paste your Google Apps Script Web App link below to link your booking system:</p>
-  <input type="text" id="sheet-url" placeholder="Paste your Google Apps Script Web App URL here" style="width: 300px;">
+  <input type="text" id="sheet-url" placeholder="Paste your Google Apps Script Web App URL here" style="width: 300px;"><br>
   <button onclick="linkGoogleSheet()">Confirm & Link</button>
 </body>
 </html>
+
