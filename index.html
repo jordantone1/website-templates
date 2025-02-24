@@ -26,6 +26,11 @@
     #social-media {
       text-align: right;
     }
+    .social-media-icons img {
+      width: 30px;
+      height: 30px;
+      margin: 0 5px;
+    }
     button {
       padding: 10px 20px;
       background-color: #007BFF;
@@ -72,6 +77,9 @@
       color: white;
       padding: 10px;
       margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     .footer a {
       color: white;
@@ -95,11 +103,18 @@
       <p id="business-phone">123-456-7890</p>
       <p id="business-address">123 Main Street, City, State</p>
       <p id="business-email">contact@yourbusiness.com</p>
+      <div class="services-list" id="services-list">
+        <p>Haircut - $50</p>
+        <p>Coloring - $80</p>
+        <p>Styling - $40</p>
+      </div>
     </div>
-    <div id="social-media"></div>
+    <div id="social-media" class="social-media-icons">
+      <a href="#"><img src="https://img.icons8.com/ios-glyphs/30/ffffff/instagram-new.png" alt="Instagram"></a>
+      <a href="#"><img src="https://img.icons8.com/ios-glyphs/30/ffffff/tiktok.png" alt="TikTok"></a>
+      <a href="#"><img src="https://img.icons8.com/ios-glyphs/30/ffffff/facebook-new.png" alt="Facebook"></a>
+    </div>
   </div>
-
-  <div class="services-list" id="services-list"></div>
 
   <button onclick="toggleCalendar()">Book an Appointment</button>
 
@@ -122,9 +137,13 @@
 
   <div class="footer">
     <a href="mailto:contact@yourbusiness.com">Contact Us</a>
-  </div>
-
-  <script>
+    <div class="social-media-icons">
+      <a href="#"><img src="https://img.icons8.com/ios-glyphs/30/ffffff/instagram-new.png" alt="Instagram"></a>
+      <a href="#"><img src="https://img.icons8.com/ios-glyphs/30/ffffff/tiktok.png" alt="TikTok"></a>
+      <a href="#"><img src="https://img.icons8.com/ios-glyphs/30/ffffff/facebook-new.png" alt="Facebook"></a>
+    </div>
+    </div>
+    <script>
     let calendarVisible = false;
     const googleSheetURL = 'YOUR_GOOGLE_SHEET_WEB_APP_URL';
 
