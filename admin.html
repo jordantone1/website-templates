@@ -3,114 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Setup | Business Booking</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #f4f4f4;
-      padding: 20px;
-      text-align: center;
-    }
-    #setup-container {
-      background: white;
-      padding: 30px;
-      margin: auto;
-      width: 50%;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-      border-radius: 10px;
-    }
-    .popup {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 20px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-      z-index: 1000;
-      border-radius: 10px;
-    }
-    button {
-      padding: 10px 20px;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    textarea {
-      width: 100%;
-      height: 300px;
-      margin-top: 20px;
-    }
-  </style>
-</head>
-<body>
-  <h1>Business Booking Admin Setup</h1>
-  <div id="setup-container">
-    <p>Complete the setup process to generate your custom website code.</p>
-    <button id="start-setup">Start Setup</button>
-  </div>
-  <div id="popup" class="popup"></div>
-
+  <title>Admin Setup - Scheduling Template</title>
   <script>
-    document.getElementById('start-setup').addEventListener('click', runSetup);
+    // Function to handle Google Sheet URL submission
+    function linkGoogleSheet() {
+      const sheetURL = document.getElementById('sheet-url').value;
+      const sheetID = extractSheetID(sheetURL);
 
-    function runSetup() {
-      showPrompt('Enter your Business Name:', (businessName) => {
-        showPrompt('Enter your preferred background color (e.g., #ffffff):', (bgColor) => {
-          showPrompt('List services with pricing (Format: Service - Price):', (services) => {
-            generateCode(businessName, bgColor, services);
-          });
-        });
-      });
+      if (sheetID) {
+        // Insert the extracted Sheet ID into the booking system dynamically
+        updateClientSite(sheetID);
+        alert('Google Sheet successfully linked!');
+      } else {
+        alert('Please enter a valid Google Sheet URL.');
+      }
     }
 
-    function showPrompt(message, callback) {
-      const popup = document.getElementById('popup');
-      popup.innerHTML = `<p>${message}</p><input type='text' id='popup-input'><br><button id='popup-submit'>Submit</button>`;
-      popup.style.display = 'block';
-      document.getElementById('popup-submit').addEventListener('click', () => {
-        const input = document.getElementById('popup-input').value;
-        popup.style.display = 'none';
-        callback(input);
-      });
+    // Extract the Google Sheet ID from the provided URL
+    function extractSheetID(url) {
+      const regex = /\/d\/(.*?)(?:\/|$)/;
+      const match = url.match(regex);
+      return match ? match[1] : null;
     }
 
-    function generateCode(businessName, bgColor, services) {
-      const servicesArray = services.split(',').map(service => `<li>${service.trim()}</li>`).join('\n');
-      const generatedCode = `<!DOCTYPE html>
-<html lang='en'>
-<head>
-  <meta charset='UTF-8'>
-  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-  <title>${businessName}</title>
-  <style>
-    body { background-color: ${bgColor}; font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-    h1 { color: #333; }
-    ul { list-style-type: none; padding: 0; }
-  </style>
-</head>
-<body>
-  <h1>${businessName}</h1>
-  <h2>Our Services</h2>
-  <ul>
-    ${servicesArray}
-  </ul>
-</body>
-</html>`;
-
-      document.getElementById('setup-container').innerHTML = `
-        <h2>Setup Complete!</h2>
-        <p>Copy the following code and paste it into your GitHub repository:</p>
-        <textarea readonly>${generatedCode}</textarea>
+    // Function to update the client-facing site dynamically
+    function updateClientSite(sheetID) {
+      // This creates a script element that integrates the Google Sheet into the index.html page
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.textContent = `
+        const googleSheetID = '${sheetID}';
+        function fetchBookings() {
+          const url = 'https://sheets.googleapis.com/v4/spreadsheets/' + googleSheetID + '/values/Sheet1?key=YOUR_API_KEY';
+          fetch(url)
+            .then(response => response.json())
+            .then(data => {
+              console.log('Booking Data:', data);
+              // Logic to block off booked slots can be added here
+            })
+            .catch(error => console.error('Error fetching data:', error));
+        }
+        fetchBookings();
       `;
+      document.body.appendChild(script);
     }
   </script>
+</head>
+<body>
+  <h1>Admin Setup</h1>
+  <p>Paste your Google Sheet link below to link your booking system:</p>
+  <input type="text" id="sheet-url" placeholder="Paste your Google Sheet URL here" style="width: 300px;">
+  <button onclick="linkGoogleSheet()">Confirm & Link</button>
 </body>
 </html>
