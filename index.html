@@ -1,166 +1,91 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Client Booking Page</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 20px;
+<script>
+  let currentDisplayedMonth = new Date();
+
+  function generateCalendar() {
+    const calendarDiv = document.getElementById('calendar-dates');
+    calendarDiv.innerHTML = '';
+    const today = new Date();
+    const maxBookingDate = new Date();
+    maxBookingDate.setMonth(maxBookingDate.getMonth() + 3);
+    const currentMonth = new Date(currentDisplayedMonth.getFullYear(), currentDisplayedMonth.getMonth(), 1);
+    const lastDate = new Date(currentDisplayedMonth.getFullYear(), currentDisplayedMonth.getMonth() + 1, 0);
+
+    // Update header with current month and year
+    document.getElementById('calendar-month-year').innerText = `${currentMonth.toLocaleString('default', { month: 'long' })} ${currentMonth.getFullYear()}`;
+
+    // Add weekday headers
+    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const headerRow = document.createElement('div');
+    headerRow.classList.add('calendar-header');
+    weekdays.forEach(day => {
+      const dayElement = document.createElement('div');
+      dayElement.innerText = day;
+      headerRow.appendChild(dayElement);
+    });
+    calendarDiv.appendChild(headerRow);
+
+    let date = new Date(currentMonth);
+    date.setDate(1 - date.getDay());
+
+    while (date <= lastDate || date.getDay() !== 0) {
+      const dateStr = date.toISOString().split('T')[0];
+      const dayButton = document.createElement('button');
+      dayButton.innerText = date.getDate();
+
+      if (
+        date < new Date(today.getTime() + 24 * 60 * 60 * 1000) ||
+        date > maxBookingDate ||
+        businessDetails.availability[dateStr] ||
+        date.getMonth() !== currentDisplayedMonth.getMonth()
+      ) {
+        dayButton.disabled = true;
+        dayButton.style.backgroundColor = '#ccc';
+      } else {
+        dayButton.onclick = function () {
+          selectDate(dateStr);
+        };
+      }
+
+      calendarDiv.appendChild(dayButton);
+      date.setDate(date.getDate() + 1);
     }
-    #calendar-container {
-      text-align: center;
-      margin: 20px auto;
-      max-width: 600px;
-    }
-    #calendar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    #calendar-dates {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 5px;
-    }
-    .calendar-day {
-      padding: 15px;
-      background-color: #007BFF;
-      color: white;
-      border-radius: 5px;
-      text-align: center;
-      cursor: pointer;
-    }
-    .calendar-day:hover {
-      background-color: #0056b3;
-    }
-    .disabled-day {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
-    .calendar-header {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      text-align: center;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-    .nav-arrow {
-      cursor: pointer;
-      font-size: 1.5rem;
-      padding: 5px 10px;
-    }
-  </style>
-</head>
-<body>
-  <h1>Client Booking Page</h1>
-  <button onclick="openCalendar()">Book an Appointment</button>
-  <div id="calendar-container" style="display:none;">
-    <div id="calendar-header">
-      <span class="nav-arrow" onclick="previousMonth()">&#8592;</span>
-      <h3 id="calendar-month-year"></h3>
-      <span class="nav-arrow" onclick="nextMonth()">&#8594;</span>
-    </div>
-    <div id="calendar-dates"></div>
+  }
+
+  function previousMonth() {
+    currentDisplayedMonth.setMonth(currentDisplayedMonth.getMonth() - 1);
+    generateCalendar();
+  }
+
+  function nextMonth() {
+    currentDisplayedMonth.setMonth(currentDisplayedMonth.getMonth() + 1);
+    generateCalendar();
+  }
+</script>
+
+<style>
+  #calendar-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .nav-arrow {
+    cursor: pointer;
+    font-size: 1.5rem;
+    padding: 5px 10px;
+  }
+</style>
+
+<div id="calendar">
+  <div id="calendar-controls">
+    <span class="nav-arrow" onclick="previousMonth()">&#8592;</span>
+    <h3 id="calendar-month-year"></h3>
+    <span class="nav-arrow" onclick="nextMonth()">&#8594;</span>
   </div>
+  <h3>Select a Date</h3>
+  <div id="calendar-dates"></div>
   <h3 id="selected-date"></h3>
   <div id="time-slots"></div>
-  <script>
-    let currentDisplayedMonth = new Date();
-
-    function openCalendar() {
-      document.getElementById('calendar-container').style.display = 'block';
-      generateCalendar();
-    }
-
-    function generateCalendar() {
-      const calendarDiv = document.getElementById('calendar-dates');
-      calendarDiv.innerHTML = '';
-      const today = new Date();
-      const maxBookingDate = new Date();
-      maxBookingDate.setMonth(maxBookingDate.getMonth() + 3);
-      const currentMonth = new Date(currentDisplayedMonth.getFullYear(), currentDisplayedMonth.getMonth(), 1);
-      const lastDate = new Date(currentDisplayedMonth.getFullYear(), currentDisplayedMonth.getMonth() + 1, 0);
-
-      document.getElementById('calendar-month-year').innerText = `${currentMonth.toLocaleString('default', { month: 'long' })} ${currentMonth.getFullYear()}`;
-
-      const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      weekdays.forEach(day => {
-        const dayElement = document.createElement('div');
-        dayElement.classList.add('calendar-day', 'disabled-day');
-        dayElement.innerText = day;
-        calendarDiv.appendChild(dayElement);
-      });
-
-      let date = new Date(currentMonth);
-      date.setDate(1 - date.getDay());
-
-      while (date <= lastDate || date.getDay() !== 0) {
-        const dateStr = date.toISOString().split('T')[0];
-        const dayElement = document.createElement('div');
-        dayElement.classList.add('calendar-day');
-        dayElement.innerText = date.getDate();
-
-        if (
-          date < new Date(today.getTime() + 24 * 60 * 60 * 1000) ||
-          date > maxBookingDate ||
-          date.getMonth() !== currentDisplayedMonth.getMonth()
-        ) {
-          dayElement.classList.add('disabled-day');
-        } else {
-          dayElement.onclick = function () {
-            selectDate(dateStr);
-          };
-        }
-
-        calendarDiv.appendChild(dayElement);
-        date.setDate(date.getDate() + 1);
-      }
-    }
-
-    function previousMonth() {
-      currentDisplayedMonth.setMonth(currentDisplayedMonth.getMonth() - 1);
-      generateCalendar();
-    }
-
-    function nextMonth() {
-      currentDisplayedMonth.setMonth(currentDisplayedMonth.getMonth() + 1);
-      generateCalendar();
-    }
-
-    function selectDate(date) {
-      document.getElementById('selected-date').innerText = `Selected Date: ${date}`;
-      generateTimeSlots(date);
-    }
-
-    function generateTimeSlots(date) {
-      const timeSlotDiv = document.getElementById('time-slots');
-      timeSlotDiv.innerHTML = '';
-      const availableTimes = ['09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM', '01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM', '04:00 PM', '04:30 PM'];
-
-      availableTimes.forEach(time => {
-        const timeButton = document.createElement('button');
-        timeButton.innerText = time;
-        timeButton.onclick = function() {
-          selectTime(date, time);
-        };
-        timeSlotDiv.appendChild(timeButton);
-      });
-    }
-
-    function selectTime(date, time) {
-      const phone = prompt('Enter your phone number:');
-      const selectedServices = prompt('Enter the services you would like to book (separated by commas):');
-      if (phone && selectedServices) {
-        alert(`Booking confirmed for ${date} at ${time} for ${selectedServices}.`);
-      }
-    }
-  </script>
-</body>
-</html>
-
+</div>
 
  
