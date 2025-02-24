@@ -3,111 +3,151 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Setup - Scheduling Template</title>
+  <title>Book an Appointment</title>
   <script>
     let businessDetails = {
-      name: '',
-      phone: '',
-      address: '',
+      name: 'Your Business Name',
+      phone: 'Your Phone Number',
+      address: 'Your Business Address',
       socialMedia: {},
-      images: []
+      images: [],
+      backgroundImage: ''
     };
 
-    // Function to handle the form submission
-    function submitBusinessInfo() {
-      businessDetails.name = document.getElementById('business-name').value;
-      businessDetails.phone = document.getElementById('phone').value;
-      businessDetails.address = document.getElementById('address').value;
-      businessDetails.socialMedia = {
-        instagram: document.getElementById('instagram').value,
-        tiktok: document.getElementById('tiktok').value,
-        facebook: document.getElementById('facebook').value
-      };
+    let googleSheetID = ''; // Placeholder to be dynamically updated from admin.html
 
-      // Collect all image URLs
-      const imageInputs = document.querySelectorAll('.image-url');
-      businessDetails.images = Array.from(imageInputs).map(input => input.value);
+    // Function to fetch available appointments from Google Sheet
+    function fetchAvailableAppointments() {
+      if (!googleSheetID) {
+        console.error('Google Sheet ID is not linked.');
+        return;
+      }
 
-      alert('Business information successfully saved!');
-      console.log(businessDetails);
+      const apiKey = 'YOUR_API_KEY'; // Replace with your actual API key
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetID}/values/Sheet1?key=${apiKey}`;
+
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          displayAppointments(data.values);
+        })
+        .catch(error => console.error('Error fetching data:', error));
     }
 
-    // Function to dynamically add image URL fields
-    function addImageField() {
-      const imageContainer = document.getElementById('image-url-container');
-      const newInput = document.createElement('input');
-      newInput.type = 'text';
-      newInput.placeholder = 'Paste Image URL Here';
-      newInput.className = 'image-url';
-      newInput.style = 'width: 300px; display: block; margin-top: 10px;';
-      imageContainer.appendChild(newInput);
+    // Function to display available appointments on the page
+    function displayAppointments(appointments) {
+      const bookingSection = document.getElementById('booking-section');
+      bookingSection.innerHTML = '';
+
+      if (!appointments || appointments.length <= 1) {
+        bookingSection.innerHTML = '<p>No available appointments at the moment.</p>';
+        return;
+      }
+
+      appointments.slice(1).forEach(appointment => {
+        const [date, time, status] = appointment;
+
+        if (status.toLowerCase() !== 'booked') {
+          const slot = document.createElement('div');
+          slot.classList.add('appointment-slot');
+          slot.innerHTML = `<p>${date} at ${time}</p>
+                            <button onclick="bookAppointment('${date}', '${time}')">Book Now</button>`;
+          bookingSection.appendChild(slot);
+        }
+      });
     }
 
-    // Function to handle Web App URL submission
-    function linkGoogleSheet() {
-      const webAppURL = document.getElementById('sheet-url').value;
-      if (validateWebAppURL(webAppURL)) {
-        updateClientSite(webAppURL);
-        alert('Google Apps Script Web App successfully linked!');
-      } else {
-        alert('Please enter a valid Google Apps Script Web App URL.');
+    // Function to handle booking confirmation
+    function bookAppointment(date, time) {
+      alert(`You have successfully booked an appointment on ${date} at ${time}.`);
+    }
+
+    // Function to display business info, images, social media links, and background image
+    function displayBusinessDetails() {
+      document.getElementById('business-name').innerText = businessDetails.name;
+      document.getElementById('business-phone').innerText = businessDetails.phone;
+      document.getElementById('business-address').innerText = businessDetails.address;
+
+      if (businessDetails.backgroundImage) {
+        document.body.style.backgroundImage = `url('${businessDetails.backgroundImage}')`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+      }
+
+      const imageContainer = document.getElementById('image-gallery');
+      businessDetails.images.forEach(imageURL => {
+        const img = document.createElement('img');
+        img.src = imageURL;
+        img.style = 'width: 100%; height: auto; margin-bottom: 10px;';
+        imageContainer.appendChild(img);
+      });
+
+      const socialMediaContainer = document.getElementById('social-media');
+      for (const [platform, url] of Object.entries(businessDetails.socialMedia)) {
+        if (url) {
+          const icon = document.createElement('a');
+          icon.href = url;
+          icon.target = '_blank';
+          icon.innerHTML = `<img src="icons/${platform}.png" alt="${platform}" style="width: 30px; margin-right: 10px;">`;
+          socialMediaContainer.appendChild(icon);
+        }
       }
     }
 
-    // Validate if the URL is a valid Google Apps Script Web App URL
-    function validateWebAppURL(url) {
-      const regex = /^https:\/\/script\.google\.com\/macros\/s\/[-\w]+\/exec$/;
-      return regex.test(url);
-    }
-
-    // Function to update the client-facing site dynamically
-    function updateClientSite(webAppURL) {
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.textContent = `
-        const googleWebAppURL = '${webAppURL}';
-        function fetchBookings() {
-          fetch(googleWebAppURL, {
-            method: 'GET'
-          })
-            .then(response => response.json())
-            .then(data => {
-              console.log('Booking Data:', data);
-              // Logic to block off booked slots can be added here
-            })
-            .catch(error => console.error('Error fetching data:', error));
-        }
-        fetchBookings();
-      `;
-      document.body.appendChild(script);
-    }
+    document.addEventListener('DOMContentLoaded', () => {
+      displayBusinessDetails();
+      fetchAvailableAppointments();
+    });
   </script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    .header {
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 20px;
+    }
+    .appointment-slot {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 5px;
+    }
+    button {
+      padding: 8px 16px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #social-media img {
+      width: 30px;
+      margin: 5px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Admin Setup</h1>
-
-  <h2>Business Information</h2>
-  <input type="text" id="business-name" placeholder="Business Name" style="width: 300px;"><br>
-  <input type="text" id="phone" placeholder="Phone Number" style="width: 300px;"><br>
-  <input type="text" id="address" placeholder="Business Address" style="width: 300px;"><br>
-
-  <h2>Social Media Links</h2>
-  <input type="text" id="instagram" placeholder="Instagram Profile URL" style="width: 300px;"><br>
-  <input type="text" id="tiktok" placeholder="TikTok Profile URL" style="width: 300px;"><br>
-  <input type="text" id="facebook" placeholder="Facebook Profile URL" style="width: 300px;"><br>
-
-  <h2>Business Images (Paste URLs)</h2>
-  <div id="image-url-container">
-    <input type="text" class="image-url" placeholder="Paste Image URL Here" style="width: 300px; display: block;">
+  <div class="header">
+    <h1 id="business-name"></h1>
+    <p id="business-phone"></p>
+    <p id="business-address"></p>
   </div>
-  <button onclick="addImageField()">+</button><br><br>
 
-  <button onclick="submitBusinessInfo()">Save Business Info</button>
+  <div id="image-gallery"></div>
 
-  <h2>Link Google Sheets</h2>
-  <p>Paste your Google Apps Script Web App link below to link your booking system:</p>
-  <input type="text" id="sheet-url" placeholder="Paste your Google Apps Script Web App URL here" style="width: 300px;"><br>
-  <button onclick="linkGoogleSheet()">Confirm & Link</button>
+  <h2>Book an Appointment</h2>
+  <div id="booking-section">
+    <p>Loading available appointments...</p>
+  </div>
+
+  <div id="social-media"></div>
 </body>
 </html>
 
