@@ -5,37 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Setup - Scheduling Template</title>
   <script>
-    // Function to handle Google Sheet URL submission
+    // Function to handle Web App URL submission
     function linkGoogleSheet() {
-      const sheetURL = document.getElementById('sheet-url').value;
-      const sheetID = extractSheetID(sheetURL);
-
-      if (sheetID) {
-        // Insert the extracted Sheet ID into the booking system dynamically
-        updateClientSite(sheetID);
-        alert('Google Sheet successfully linked!');
+      const webAppURL = document.getElementById('sheet-url').value;
+      if (validateWebAppURL(webAppURL)) {
+        // Insert the provided Web App URL into the booking system dynamically
+        updateClientSite(webAppURL);
+        alert('Google Apps Script Web App successfully linked!');
       } else {
-        alert('Please enter a valid Google Sheet URL.');
+        alert('Please enter a valid Google Apps Script Web App URL.');
       }
     }
 
-    // Extract the Google Sheet ID from the provided URL
-    function extractSheetID(url) {
-      const regex = /\/d\/(.*?)(?:\/|$)/;
-      const match = url.match(regex);
-      return match ? match[1] : null;
+    // Validate if the URL is a valid Google Apps Script Web App URL
+    function validateWebAppURL(url) {
+      const regex = /^https:\/\/script\.google\.com\/macros\/s\/[-\w]+\/exec$/;
+      return regex.test(url);
     }
 
     // Function to update the client-facing site dynamically
-    function updateClientSite(sheetID) {
-      // This creates a script element that integrates the Google Sheet into the index.html page
+    function updateClientSite(webAppURL) {
+      // This creates a script element that integrates the booking system with the provided Web App URL
       const script = document.createElement('script');
       script.type = 'text/javascript';
       script.textContent = `
-        const googleSheetID = '${sheetID}';
+        const googleWebAppURL = '${webAppURL}';
         function fetchBookings() {
-          const url = 'https://sheets.googleapis.com/v4/spreadsheets/' + googleSheetID + '/values/Sheet1?key=YOUR_API_KEY';
-          fetch(url)
+          fetch(googleWebAppURL, {
+            method: 'GET'
+          })
             .then(response => response.json())
             .then(data => {
               console.log('Booking Data:', data);
@@ -51,8 +49,8 @@
 </head>
 <body>
   <h1>Admin Setup</h1>
-  <p>Paste your Google Sheet link below to link your booking system:</p>
-  <input type="text" id="sheet-url" placeholder="Paste your Google Sheet URL here" style="width: 300px;">
+  <p>Paste your Google Apps Script Web App link below to link your booking system:</p>
+  <input type="text" id="sheet-url" placeholder="Paste your Google Apps Script Web App URL here" style="width: 300px;">
   <button onclick="linkGoogleSheet()">Confirm & Link</button>
 </body>
 </html>
