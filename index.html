@@ -3,130 +3,91 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Business Booking | Welcome</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+  <title>Book an Appointment</title>
+  <script>
+    let googleSheetID = ''; // Placeholder to be dynamically updated from admin.html
+
+    // Function to fetch available appointments from Google Sheet
+    function fetchAvailableAppointments() {
+      if (!googleSheetID) {
+        console.error('Google Sheet ID is not linked.');
+        return;
+      }
+
+      const apiKey = 'YOUR_API_KEY'; // Replace with your actual API key
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetID}/values/Sheet1?key=${apiKey}`;
+
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          displayAppointments(data.values);
+        })
+        .catch(error => console.error('Error fetching data:', error));
+    }
+
+    // Function to display available appointments on the page
+    function displayAppointments(appointments) {
+      const bookingSection = document.getElementById('booking-section');
+      bookingSection.innerHTML = '';
+
+      if (!appointments || appointments.length <= 1) {
+        bookingSection.innerHTML = '<p>No available appointments at the moment.</p>';
+        return;
+      }
+
+      // Skip the header row and display available slots
+      appointments.slice(1).forEach(appointment => {
+        const [date, time, status] = appointment;
+
+        if (status.toLowerCase() !== 'booked') {
+          const slot = document.createElement('div');
+          slot.classList.add('appointment-slot');
+          slot.innerHTML = `<p>${date} at ${time}</p>
+                            <button onclick="bookAppointment('${date}', '${time}')">Book Now</button>`;
+          bookingSection.appendChild(slot);
+        }
+      });
+    }
+
+    // Function to handle booking confirmation (for demonstration purposes)
+    function bookAppointment(date, time) {
+      alert(`You have successfully booked an appointment on ${date} at ${time}.`);
+      // Here you would add logic to send booking confirmation to the Google Sheet
+    }
+
+    // Automatically fetch appointments on page load
+    document.addEventListener('DOMContentLoaded', fetchAvailableAppointments);
+  </script>
   <style>
     body {
-      background-color: #f4f4f4;
-      font-family: 'Poppins', sans-serif;
-    }
-    header {
-      background-color: #e0e0e0;
+      font-family: Arial, sans-serif;
+      text-align: center;
       padding: 20px;
-      text-align: center;
     }
-    #hero {
-      background-color: #f0f0f0;
-      padding: 50px 20px;
-      text-align: center;
+    .appointment-slot {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 5px;
     }
-    .btn {
+    button {
+      padding: 8px 16px;
       background-color: #007BFF;
       color: white;
-      padding: 10px 20px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
     }
-    .btn:hover {
+    button:hover {
       background-color: #0056b3;
-    }
-    #popup-calendar {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 20px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-      z-index: 1000;
-    }
-    #popup-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 999;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1 id="business-name">Business Name</h1>
-  </header>
-
-  <section id="hero">
-    <h2>Welcome to Our Booking Service</h2>
-    <p>Schedule your appointment today and experience excellence.</p>
-    <button id="book-appointment-btn" class="btn">Book an Appointment</button>
-  </section>
-
-  <div id="popup-overlay"></div>
-  <div id="popup-calendar">
-    <h2>Select Date and Time</h2>
-    <div id="calendar"></div>
+  <h1>Book an Appointment</h1>
+  <div id="booking-section">
+    <p>Loading available appointments...</p>
   </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const bookBtn = document.getElementById('book-appointment-btn');
-      const popup = document.getElementById('popup-calendar');
-      const overlay = document.getElementById('popup-overlay');
-      const blockedSlots = JSON.parse(localStorage.getItem('blockedSlots')) || {};
-
-      bookBtn.addEventListener('click', () => {
-        popup.style.display = 'block';
-        overlay.style.display = 'block';
-      });
-
-      const calendarEl = document.getElementById('calendar');
-      const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        selectable: true,
-        height: 'auto',
-        dateClick: function (info) {
-          const selectedDate = info.dateStr;
-          const timeSlot = prompt(`You selected ${selectedDate}. Enter preferred time (HH:MM):`);
-          if (timeSlot) {
-            const name = prompt('Enter your full name:');
-            const details = prompt('Enter appointment details:');
-
-            if (!blockedSlots[selectedDate]) blockedSlots[selectedDate] = [];
-            blockedSlots[selectedDate].push(timeSlot);
-            localStorage.setItem('blockedSlots', JSON.stringify(blockedSlots));
-
-            calendar.addEvent({
-              title: 'Booked',
-              start: `${selectedDate}T${timeSlot}`,
-              display: 'background',
-              color: '#ff4d4d'
-            });
-
-            alert('Appointment confirmed!');
-            popup.style.display = 'none';
-            overlay.style.display = 'none';
-          }
-        },
-        events: Object.entries(blockedSlots).flatMap(([date, times]) => {
-          return times.map(time => {
-            return {
-              title: 'Booked',
-              start: `${date}T${time}`,
-              display: 'background',
-              color: '#ff4d4d'
-            };
-          });
-        })
-      });
-      calendar.render();
-    });
-  </script>
 </body>
 </html>
 
