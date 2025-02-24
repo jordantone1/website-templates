@@ -13,19 +13,10 @@
       images: [],
       backgroundImage: '',
       googleSheetURL: '',
-      password: ''
+      availability: {},
+      services: []
     };
 
-    // Check for stored sheet URL and prompt password on load
-    window.onload = function() {
-      const storedSheetURL = localStorage.getItem('googleSheetURL');
-      if (storedSheetURL) {
-        businessDetails.googleSheetURL = storedSheetURL;
-        promptPasswordAccess();
-      }
-    };
-
-    // Function to handle form submission
     function submitBusinessInfo() {
       businessDetails.name = document.getElementById('business-name').value;
       businessDetails.phone = document.getElementById('phone').value;
@@ -37,103 +28,56 @@
       };
       businessDetails.backgroundImage = document.getElementById('background-image').value;
 
-      // Collect all image URLs
-      const imageInputs = document.querySelectorAll('.image-url');
-      businessDetails.images = Array.from(imageInputs).map(input => input.value);
+      const services = document.querySelectorAll('.service-entry');
+      businessDetails.services = Array.from(services).map(service => ({
+        name: service.querySelector('.service-name').value,
+        price: service.querySelector('.service-price').value
+      }));
 
-      alert('Business information successfully saved!');
-      console.log(businessDetails);
+      const availabilityDays = document.querySelectorAll('.availability-day');
+      availabilityDays.forEach(day => {
+        const dayName = day.dataset.day;
+        const isAvailable = day.querySelector('.day-checkbox').checked;
+        if (isAvailable) {
+          const hours = day.querySelector('.day-hours').value;
+          businessDetails.availability[dayName] = hours;
+        }
+      });
+
+      alert('Business Information Saved Successfully!');
     }
 
-    // Add image URL field dynamically
-    function addImageField() {
-      const imageContainer = document.getElementById('image-url-container');
-      const newInput = document.createElement('input');
-      newInput.type = 'text';
-      newInput.placeholder = 'Paste Image URL Here';
-      newInput.className = 'image-url';
-      newInput.style = 'width: 300px; display: block; margin-top: 10px;';
-      imageContainer.appendChild(newInput);
+    function addServiceField() {
+      const serviceContainer = document.getElementById('services-container');
+      const serviceDiv = document.createElement('div');
+      serviceDiv.classList.add('service-entry');
+      serviceDiv.innerHTML = `
+        <input type="text" class="service-name" placeholder="Service Name">
+        <input type="text" class="service-price" placeholder="Price">
+        <button onclick="this.parentElement.remove()">Remove</button>
+      `;
+      serviceContainer.appendChild(serviceDiv);
     }
 
-    // Handle Google Sheet URL submission
-    function linkGoogleSheet() {
-      const webAppURL = document.getElementById('sheet-url').value;
-      if (validateWebAppURL(webAppURL)) {
-        businessDetails.googleSheetURL = webAppURL;
-        localStorage.setItem('googleSheetURL', webAppURL);
-        updateIndexPage(webAppURL);
-        promptPasswordSetup();
-      } else {
-        alert('Please enter a valid Google Apps Script Web App URL.');
-      }
+    function generateAvailabilityFields() {
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const availabilityContainer = document.getElementById('availability-container');
+      days.forEach(day => {
+        const dayDiv = document.createElement('div');
+        dayDiv.classList.add('availability-day');
+        dayDiv.dataset.day = day;
+        dayDiv.innerHTML = `
+          <label>
+            <input type="checkbox" class="day-checkbox"> ${day}
+          </label>
+          <input type="text" class="day-hours" placeholder="Hours (e.g., 9:00 AM - 5:00 PM)">
+        `;
+        availabilityContainer.appendChild(dayDiv);
+      });
     }
 
-    // Validate Google Apps Script Web App URL
-    function validateWebAppURL(url) {
-      const regex = /^https:\/\/script\.google\.com\/macros\/s\/[-\w]+\/exec$/;
-      return regex.test(url);
-    }
-
-    // Prompt user for password setup
-    function promptPasswordSetup() {
-      const password = prompt('Set up your admin password:');
-      if (password && password.trim() !== '') {
-        businessDetails.password = password;
-        savePasswordToGoogleSheet(password);
-      } else {
-        alert('Password setup is required to continue.');
-      }
-    }
-
-    // Prompt user for password on page load
-    function promptPasswordAccess() {
-      const password = prompt('Enter your admin password:');
-      if (password && password.trim() !== '') {
-        verifyPassword(password);
-      } else {
-        alert('Access denied.');
-        window.location.href = 'index.html';
-      }
-    }
-
-    // Save password in cell A1 of the Google Sheet
-    function savePasswordToGoogleSheet(password) {
-      fetch(businessDetails.googleSheetURL, {
-        method: 'POST',
-        body: JSON.stringify({ row: 1, column: 1, value: password }),
-        headers: { 'Content-Type': 'application/json' }
-      })
-        .then(response => {
-          if (response.ok) {
-            alert('Password successfully set. You will now be logged out.');
-            window.location.href = 'index.html'; // Redirect after setup
-          } else {
-            alert('Failed to set password. Please try again.');
-          }
-        })
-        .catch(error => console.error('Error saving password:', error));
-    }
-
-    // Verify password against the one stored in the Google Sheet
-    function verifyPassword(password) {
-      fetch(businessDetails.googleSheetURL)
-        .then(response => response.json())
-        .then(data => {
-          const storedPassword = data.values[0][0]; // Assuming A1 contains the password
-          if (password === storedPassword) {
-            alert('Access granted.');
-          } else {
-            alert('Incorrect password.');
-            window.location.href = 'index.html';
-          }
-        })
-        .catch(error => console.error('Error verifying password:', error));
-    }
-
-    // Update index.html dynamically with Google Sheet URL
-    function updateIndexPage(sheetURL) {
-      localStorage.setItem('linkedSheetURL', sheetURL);
+    window.onload = function() {
+      generateAvailabilityFields();
     }
   </script>
 </head>
@@ -141,30 +85,27 @@
   <h1>Admin Setup</h1>
 
   <h2>Business Information</h2>
-  <input type="text" id="business-name" placeholder="Business Name" style="width: 300px;"><br>
-  <input type="text" id="phone" placeholder="Phone Number" style="width: 300px;"><br>
-  <input type="text" id="address" placeholder="Business Address" style="width: 300px;"><br>
+  <input type="text" id="business-name" placeholder="Business Name"><br>
+  <input type="text" id="phone" placeholder="Phone Number"><br>
+  <input type="text" id="address" placeholder="Business Address"><br>
 
   <h2>Social Media Links</h2>
-  <input type="text" id="instagram" placeholder="Instagram Profile URL" style="width: 300px;"><br>
-  <input type="text" id="tiktok" placeholder="TikTok Profile URL" style="width: 300px;"><br>
-  <input type="text" id="facebook" placeholder="Facebook Profile URL" style="width: 300px;"><br>
+  <input type="text" id="instagram" placeholder="Instagram URL"><br>
+  <input type="text" id="tiktok" placeholder="TikTok URL"><br>
+  <input type="text" id="facebook" placeholder="Facebook URL"><br>
 
   <h2>Background Image</h2>
-  <input type="text" id="background-image" placeholder="Paste Background Image URL Here" style="width: 300px;"><br>
+  <input type="text" id="background-image" placeholder="Background Image URL"><br>
 
-  <h2>Business Images (Paste URLs)</h2>
-  <div id="image-url-container">
-    <input type="text" class="image-url" placeholder="Paste Image URL Here" style="width: 300px; display: block;">
-  </div>
-  <button onclick="addImageField()">+</button><br><br>
+  <h2>Services Offered</h2>
+  <div id="services-container"></div>
+  <button onclick="addServiceField()">Add Service</button>
 
+  <h2>Availability</h2>
+  <div id="availability-container"></div>
+
+  <br>
   <button onclick="submitBusinessInfo()">Save Business Info</button>
-
-  <h2>Link Google Sheets</h2>
-  <p>Paste your Google Apps Script Web App link below to link your booking system:</p>
-  <input type="text" id="sheet-url" placeholder="Paste your Google Apps Script Web App URL here" style="width: 300px;"><br>
-  <button onclick="linkGoogleSheet()">Confirm & Link</button>
 </body>
 </html>
 
