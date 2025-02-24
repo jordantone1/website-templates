@@ -3,94 +3,155 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Book an Appointment</title>
+  <title>Client Booking Page</title>
   <script>
     let businessDetails = {
-      name: 'Your Business Name',
-      phone: 'Your Phone Number',
-      address: 'Your Business Address',
+      name: '',
+      phone: '',
+      address: '',
       socialMedia: {},
-      images: []
+      images: [],
+      backgroundImage: '',
+      googleSheetURL: '',
+      availability: {}
     };
 
-    let googleSheetID = ''; // Placeholder to be dynamically updated from admin.html
-
-    // Function to fetch available appointments from Google Sheet
-    function fetchAvailableAppointments() {
-      if (!googleSheetID) {
-        console.error('Google Sheet ID is not linked.');
-        return;
+    // Load data by fetching the Google Sheet URL directly from the embedded script
+    window.onload = function() {
+      const embeddedSheetURL = document.getElementById('googleSheetURL').textContent;
+      if (embeddedSheetURL) {
+        businessDetails.googleSheetURL = embeddedSheetURL;
+        fetchBusinessData();
+        fetchAppointments();
       }
+    };
 
-      const apiKey = 'YOUR_API_KEY'; // Replace with your actual API key
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetID}/values/Sheet1?key=${apiKey}`;
-
-      fetch(url)
+    // Fetch business data from Google Sheet
+    function fetchBusinessData() {
+      fetch(businessDetails.googleSheetURL)
         .then(response => response.json())
         .then(data => {
-          displayAppointments(data.values);
+          const values = data.values;
+          if (values.length > 1) {
+            displayBusinessInfo(values[1]);
+            extractAvailability(values);
+          }
         })
-        .catch(error => console.error('Error fetching data:', error));
+        .catch(error => console.error('Error fetching business data:', error));
     }
 
-    // Function to display available appointments on the page
+    // Display fetched business info
+    function displayBusinessInfo(data) {
+      document.getElementById('business-name').innerText = data[0] || 'Business Name';
+      document.getElementById('business-phone').innerText = data[1] || 'Phone Number';
+      document.getElementById('business-address').innerText = data[2] || 'Business Address';
+
+      if (data[3]) addSocialMediaLink('Instagram', data[3]);
+      if (data[4]) addSocialMediaLink('TikTok', data[4]);
+      if (data[5]) addSocialMediaLink('Facebook', data[5]);
+
+      if (data[6]) {
+        document.body.style.backgroundImage = `url('${data[6]}')`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+      }
+    }
+
+    // Extract availability data from Google Sheet
+    function extractAvailability(data) {
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      days.forEach((day, index) => {
+        if (data[index + 2]) { // Assuming availability starts from row 3
+          const hours = data[index + 2][0];
+          if (hours && hours.includes('-')) {
+            businessDetails.availability[day] = hours;
+          }
+        }
+      });
+    }
+
+    // Add social media links dynamically
+    function addSocialMediaLink(platform, url) {
+      const container = document.getElementById('social-media');
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.innerText = platform;
+      link.style = 'margin: 0 10px;';
+      container.appendChild(link);
+    }
+
+    // Fetch appointments from Google Sheet
+    function fetchAppointments() {
+      fetch(businessDetails.googleSheetURL)
+        .then(response => response.json())
+        .then(data => {
+          displayAppointments(data.values.slice(9)); // Skip initial rows for availability and business info
+        })
+        .catch(error => console.error('Error fetching appointments:', error));
+    }
+
+    // Display available appointments based on availability
     function displayAppointments(appointments) {
       const bookingSection = document.getElementById('booking-section');
       bookingSection.innerHTML = '';
 
-      if (!appointments || appointments.length <= 1) {
-        bookingSection.innerHTML = '<p>No available appointments at the moment.</p>';
+      const days = Object.keys(businessDetails.availability);
+
+      if (days.length === 0) {
+        bookingSection.innerHTML = '<p>No availability has been set by this business.</p>';
         return;
       }
 
-      appointments.slice(1).forEach(appointment => {
-        const [date, time, status] = appointment;
+      days.forEach(day => {
+        const times = businessDetails.availability[day].split('-');
+        const startTime = parseTime(times[0].trim());
+        const endTime = parseTime(times[1].trim());
+        const currentDate = new Date();
 
-        if (status.toLowerCase() !== 'booked') {
-          const slot = document.createElement('div');
-          slot.classList.add('appointment-slot');
-          slot.innerHTML = `<p>${date} at ${time}</p>
-                            <button onclick="bookAppointment('${date}', '${time}')">Book Now</button>`;
-          bookingSection.appendChild(slot);
+        while (startTime < endTime) {
+          const slot = `${day}: ${formatTime(startTime)}`;
+          if (!isSlotBooked(appointments, day, formatTime(startTime))) {
+            const slotElement = document.createElement('div');
+            slotElement.classList.add('appointment-slot');
+            slotElement.innerHTML = `<p>${slot}</p>
+              <button onclick="bookAppointment('${day}', '${formatTime(startTime)}')">Book Now</button>`;
+            bookingSection.appendChild(slotElement);
+          }
+          startTime.setMinutes(startTime.getMinutes() + 30); // Increment by 30 mins
         }
       });
     }
 
-    // Function to handle booking confirmation
-    function bookAppointment(date, time) {
-      alert(`You have successfully booked an appointment on ${date} at ${time}.`);
+    // Parse time from string to Date object
+    function parseTime(timeStr) {
+      const date = new Date();
+      const [hours, minutesPart] = timeStr.split(':');
+      const minutes = parseInt(minutesPart);
+      const isPM = timeStr.toLowerCase().includes('pm');
+      date.setHours(parseInt(hours) + (isPM && hours != 12 ? 12 : 0));
+      date.setMinutes(minutes);
+      return date;
     }
 
-    // Function to display business info, images, and social media links
-    function displayBusinessDetails() {
-      document.getElementById('business-name').innerText = businessDetails.name;
-      document.getElementById('business-phone').innerText = businessDetails.phone;
-      document.getElementById('business-address').innerText = businessDetails.address;
-
-      const imageContainer = document.getElementById('image-gallery');
-      businessDetails.images.forEach(imageURL => {
-        const img = document.createElement('img');
-        img.src = imageURL;
-        img.style = 'width: 100%; height: auto; margin-bottom: 10px;';
-        imageContainer.appendChild(img);
-      });
-
-      const socialMediaContainer = document.getElementById('social-media');
-      for (const [platform, url] of Object.entries(businessDetails.socialMedia)) {
-        if (url) {
-          const icon = document.createElement('a');
-          icon.href = url;
-          icon.target = '_blank';
-          icon.innerHTML = `<img src="icons/${platform}.png" alt="${platform}" style="width: 30px; margin-right: 10px;">`;
-          socialMediaContainer.appendChild(icon);
-        }
-      }
+    // Format time back to string
+    function formatTime(date) {
+      let hours = date.getHours();
+      const minutes = date.getMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      return `${hours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      displayBusinessDetails();
-      fetchAvailableAppointments();
-    });
+    // Check if the slot is already booked
+    function isSlotBooked(appointments, day, time) {
+      return appointments.some(app => app[0] === day && app[1] === time && app[2] === 'Booked');
+    }
+
+    // Handle booking confirmation
+    function bookAppointment(day, time) {
+      alert(`You have successfully booked an appointment on ${day} at ${time}.`);
+    }
   </script>
   <style>
     body {
@@ -99,7 +160,7 @@
       padding: 20px;
     }
     .header {
-      background-color: #f4f4f4;
+      background-color: rgba(255, 255, 255, 0.8);
       padding: 20px;
     }
     .appointment-slot {
@@ -119,30 +180,24 @@
     button:hover {
       background-color: #0056b3;
     }
-    #social-media img {
-      width: 30px;
-      margin: 5px;
-    }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1 id="business-name"></h1>
-    <p id="business-phone"></p>
-    <p id="business-address"></p>
+    <h1 id="business-name">Loading Business Name...</h1>
+    <p id="business-phone">Loading Phone Number...</p>
+    <p id="business-address">Loading Address...</p>
   </div>
 
-  <div id="image-gallery"></div>
+  <div id="social-media"></div>
 
   <h2>Book an Appointment</h2>
   <div id="booking-section">
     <p>Loading available appointments...</p>
   </div>
 
-  <div id="social-media"></div>
+  <!-- Hidden element to store the linked Google Sheet URL -->
+  <div id="googleSheetURL" style="display: none;">YOUR_GOOGLE_SHEET_URL</div>
 </body>
 </html>
-
-</html>
-
-
+ 
