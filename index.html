@@ -6,83 +6,43 @@
   <title>Client Booking Page</title>
   <script>
     let businessDetails = {
-      name: '',
-      phone: '',
-      address: '',
-      socialMedia: {},
-      images: [],
-      backgroundImage: '',
-      googleSheetURL: '',
-      availability: {},
-      services: [],
+      name: 'Your Business Name',
+      phone: '123-456-7890',
+      address: '123 Main Street, City, State',
+      socialMedia: {
+        Instagram: 'https://instagram.com/yourbusiness',
+        TikTok: 'https://tiktok.com/@yourbusiness',
+        Facebook: 'https://facebook.com/yourbusiness'
+      },
+      images: ['https://example.com/image1.jpg', 'https://example.com/image2.jpg'],
+      backgroundImage: 'https://example.com/background.jpg',
+      availability: {
+        '2024-03-10': ['09:00 AM', '10:00 AM'],
+        '2024-03-11': ['11:00 AM', '01:00 PM']
+      },
+      services: [
+        'Haircut - $50',
+        'Coloring - $80',
+        'Styling - $40'
+      ],
       bookings: []
     };
 
     window.onload = function() {
-      const embeddedSheetURL = document.getElementById('googleSheetURL').textContent;
-      if (embeddedSheetURL) {
-        businessDetails.googleSheetURL = embeddedSheetURL;
-        fetchBusinessData();
-        fetchAppointments();
-      }
+      displayBusinessInfo();
     };
 
-    function fetchBusinessData() {
-      fetch(businessDetails.googleSheetURL)
-        .then(response => response.json())
-        .then(data => {
-          const values = data.values;
-          if (values.length > 1) {
-            displayBusinessInfo(values[1]);
-            extractAvailability(values);
-            extractBookings(values);
-            extractServices(values);
-          }
-        })
-        .catch(error => console.error('Error fetching business data:', error));
-    }
+    function displayBusinessInfo() {
+      document.getElementById('business-name').innerText = businessDetails.name;
+      document.getElementById('business-phone').innerText = businessDetails.phone;
+      document.getElementById('business-address').innerText = businessDetails.address;
 
-    function extractAvailability(data) {
-      businessDetails.availability = {};
-      data.forEach(row => {
-        const date = row[0];
-        const time = row[1];
-        const status = row[4];
-        if (status === 'Booked') {
-          if (!businessDetails.availability[date]) {
-            businessDetails.availability[date] = [];
-          }
-          businessDetails.availability[date].push(time);
-        }
-      });
-    }
-
-    function extractBookings(data) {
-      businessDetails.bookings = data.slice(1);
-    }
-
-    function extractServices(data) {
-      businessDetails.services = [];
-      for (let i = 1; i < data.length; i++) {
-        const service = data[i][5];
-        const price = data[i][6];
-        if (service && price) {
-          businessDetails.services.push(`${service} - $${price}`);
-        }
+      for (const platform in businessDetails.socialMedia) {
+        addSocialMediaLink(platform, businessDetails.socialMedia[platform]);
       }
-    }
 
-    function displayBusinessInfo(data) {
-      document.getElementById('business-name').innerText = data[0] || 'Business Name';
-      document.getElementById('business-phone').innerText = data[1] || 'Phone Number';
-      document.getElementById('business-address').innerText = data[2] || 'Business Address';
-
-      if (data[3]) addSocialMediaLink('Instagram', data[3]);
-      if (data[4]) addSocialMediaLink('TikTok', data[4]);
-      if (data[5]) addSocialMediaLink('Facebook', data[5]);
-
-      if (data[6]) {
-        document.body.style.backgroundImage = `url('${data[6]}')`;
+      if (businessDetails.backgroundImage) {
+        document.body.style.backgroundImage = `url('${businessDetails.backgroundImage}')`;
         document.body.style.backgroundSize = 'cover';
         document.body.style.backgroundPosition = 'center';
       }
@@ -154,7 +114,7 @@
 
     function selectTime(date, time) {
       const phone = prompt('Enter your phone number:');
-      const selectedServices = prompt('Enter the services you would like to book (separated by commas):');
+      const selectedServices = prompt(`Select from: \n${businessDetails.services.join('\n')}`);
       if (phone && selectedServices) {
         alert(`Booking confirmed for ${date} at ${time} for ${selectedServices}.`);
       }
@@ -195,9 +155,9 @@
 </head>
 <body>
   <div class="header">
-    <h1 id="business-name">Loading Business Name...</h1>
-    <p id="business-phone">Loading Phone Number...</p>
-    <p id="business-address">Loading Address...</p>
+    <h1 id="business-name"></h1>
+    <p id="business-phone"></p>
+    <p id="business-address"></p>
   </div>
 
   <div id="social-media"></div>
@@ -211,10 +171,8 @@
     <h3 id="selected-date"></h3>
     <div id="time-slots"></div>
   </div>
-
-  <button onclick="window.location.href='admin.html'">Go to Admin Page</button>
-
-  <div id="googleSheetURL" style="display: none;">YOUR_GOOGLE_SHEET_URL</div>
 </body>
+</html>
+
 </html>
 
