@@ -67,7 +67,7 @@
         const service = data[i][5];
         const price = data[i][6];
         if (service && price) {
-          businessDetails.services.push(`${service} - $${price}`);
+          businessDetails.services.push(${service} - $${price});
         }
       }
     }
@@ -82,7 +82,7 @@
       if (data[5]) addSocialMediaLink('Facebook', data[5]);
 
       if (data[6]) {
-        document.body.style.backgroundImage = `url('${data[6]}')`;
+        document.body.style.backgroundImage = url('${data[6]}');
         document.body.style.backgroundSize = 'cover';
         document.body.style.backgroundPosition = 'center';
       }
@@ -183,6 +183,7 @@
   <h3 id="calendar-month-year"></h3>
   <span style="cursor: pointer; font-size: 1.5rem; padding: 5px 10px;" onclick="nextMonth()">&#8594;</span>
 </div>
+
     body {
       font-family: Arial, sans-serif;
       text-align: center;
@@ -252,5 +253,6 @@
   <button onclick="window.location.href='admin.html'">Go to Admin Page</button>
 
   <div id="googleSheetURL" style="display: none;">YOUR_GOOGLE_SHEET_URL</div>
-
+</body>
+</html>
  
