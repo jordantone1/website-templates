@@ -98,92 +98,69 @@
       container.appendChild(link);
     }
 
-    <script>
-  let currentDisplayedMonth = new Date();
+    function openCalendar() {
+      document.getElementById('calendar').style.display = 'block';
+      generateCalendar();
+    }
 
-  function openCalendar() {
-    document.getElementById('calendar').style.display = 'block';
-    generateCalendar();
-  }
+    function generateCalendar() {
+      const calendarDiv = document.getElementById('calendar-dates');
+      calendarDiv.innerHTML = '';
+      const today = new Date();
+      const maxBookingDate = new Date();
+      maxBookingDate.setMonth(maxBookingDate.getMonth() + 3);
 
-  function generateCalendar() {
-    const calendarDiv = document.getElementById('calendar-dates');
-    calendarDiv.innerHTML = '';
-    const today = new Date();
-    const maxBookingDate = new Date();
-    maxBookingDate.setMonth(maxBookingDate.getMonth() + 3);
-    const currentMonth = new Date(currentDisplayedMonth.getFullYear(), currentDisplayedMonth.getMonth(), 1);
-    const lastDate = new Date(currentDisplayedMonth.getFullYear(), currentDisplayedMonth.getMonth() + 1, 0);
+      for (let i = 0; i < 90; i++) {
+        const date = new Date();
+        date.setDate(today.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        const dayButton = document.createElement('button');
+        dayButton.innerText = date.toDateString();
 
-    document.getElementById('calendar-month-year').innerText = `${currentMonth.toLocaleString('default', { month: 'long' })} ${currentMonth.getFullYear()}`;
+        if (date < new Date(today.getTime() + 24 * 60 * 60 * 1000) || date > maxBookingDate || businessDetails.availability[dateStr]) {
+          dayButton.disabled = true;
+          dayButton.style.backgroundColor = '#ccc';
+        } else {
+          dayButton.onclick = function() {
+            selectDate(dateStr);
+          };
+        }
+        calendarDiv.appendChild(dayButton);
+      }
+    }
 
-    for (let day = 1; day <= lastDate.getDate(); day++) {
-      const date = new Date(currentDisplayedMonth.getFullYear(), currentDisplayedMonth.getMonth(), day);
-      const dateStr = date.toISOString().split('T')[0];
-      const dayButton = document.createElement('button');
-      dayButton.innerText = date.getDate();
+    function selectDate(date) {
+      document.getElementById('selected-date').innerText = Selected Date: ${date};
+      generateTimeSlots(date);
+    }
 
-      if (date < new Date(today.getTime() + 24 * 60 * 60 * 1000) || date > maxBookingDate || businessDetails.availability[dateStr]) {
-        dayButton.disabled = true;
-        dayButton.style.backgroundColor = '#ccc';
-      } else {
-        dayButton.onclick = function() {
-          selectDate(dateStr);
+    function generateTimeSlots(date) {
+      const timeSlotDiv = document.getElementById('time-slots');
+      timeSlotDiv.innerHTML = '';
+      const availableTimes = ['09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM', '01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM', '04:00 PM', '04:30 PM'];
+
+      availableTimes.forEach(time => {
+        if (businessDetails.availability[date] && businessDetails.availability[date].includes(time)) {
+          return;
+        }
+        const timeButton = document.createElement('button');
+        timeButton.innerText = time;
+        timeButton.onclick = function() {
+          selectTime(date, time);
         };
-      }
-      calendarDiv.appendChild(dayButton);
+        timeSlotDiv.appendChild(timeButton);
+      });
     }
-  }
 
-  function previousMonth() {
-    currentDisplayedMonth.setMonth(currentDisplayedMonth.getMonth() - 1);
-    generateCalendar();
-  }
-
-  function nextMonth() {
-    currentDisplayedMonth.setMonth(currentDisplayedMonth.getMonth() + 1);
-    generateCalendar();
-  }
-
-  function selectDate(date) {
-    document.getElementById('selected-date').innerText = `Selected Date: ${date}`;
-    generateTimeSlots(date);
-  }
-
-  function generateTimeSlots(date) {
-    const timeSlotDiv = document.getElementById('time-slots');
-    timeSlotDiv.innerHTML = '';
-    const availableTimes = ['09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM', '01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM', '04:00 PM', '04:30 PM'];
-
-    availableTimes.forEach(time => {
-      if (businessDetails.availability[date] && businessDetails.availability[date].includes(time)) {
-        return;
+    function selectTime(date, time) {
+      const phone = prompt('Enter your phone number:');
+      const selectedServices = prompt('Enter the services you would like to book (separated by commas):');
+      if (phone && selectedServices) {
+        alert(Booking confirmed for ${date} at ${time} for ${selectedServices}.);
       }
-      const timeButton = document.createElement('button');
-      timeButton.innerText = time;
-      timeButton.onclick = function() {
-        selectTime(date, time);
-      };
-      timeSlotDiv.appendChild(timeButton);
-    });
-  }
-
-  function selectTime(date, time) {
-    const phone = prompt('Enter your phone number:');
-    const selectedServices = prompt('Enter the services you would like to book (separated by commas):');
-    if (phone && selectedServices) {
-      alert(`Booking confirmed for ${date} at ${time} for ${selectedServices}.`);
     }
-  }
-</script>
-
-<!-- Add navigation arrows and update existing calendar header -->
-<div id="calendar-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-  <span style="cursor: pointer; font-size: 1.5rem; padding: 5px 10px;" onclick="previousMonth()">&#8592;</span>
-  <h3 id="calendar-month-year"></h3>
-  <span style="cursor: pointer; font-size: 1.5rem; padding: 5px 10px;" onclick="nextMonth()">&#8594;</span>
-</div>
-
+  </script>
+  <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
