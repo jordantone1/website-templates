@@ -238,6 +238,39 @@
       })
       .catch(error => console.error('Error:', error));
     }
+    // 🔄 Image Cycling Script Starts Here
+
+// Image arrays for cycling
+const leftImages = [
+  "tester.png", 
+  "https://example.com/left2.jpg",
+  "https://example.com/left3.jpg"
+];
+
+const rightImages = [
+  "tester2.png", 
+  "https://example.com/right2.jpg",
+  "https://example.com/right3.jpg"
+];
+
+let leftIndex = 0;
+let rightIndex = 0;
+
+// Function to cycle images every 5 seconds
+function cycleImages() {
+  setInterval(() => {
+    leftIndex = (leftIndex + 1) % leftImages.length;
+    rightIndex = (rightIndex + 1) % rightImages.length;
+
+    document.getElementById('left-image').src = leftImages[leftIndex];
+    document.getElementById('right-image').src = rightImages[rightIndex];
+  }, 5000); // Change image every 5 seconds
+}
+
+// Start cycling images when the page loads
+window.onload = function() {
+  cycleImages(); // Start image cycling
+};
   </script>
 </body>
 </html>
