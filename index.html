@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Book an Appointment</title>
   <script>
+    let businessDetails = {
+      name: 'Your Business Name',
+      phone: 'Your Phone Number',
+      address: 'Your Business Address',
+      socialMedia: {},
+      images: []
+    };
+
     let googleSheetID = ''; // Placeholder to be dynamically updated from admin.html
 
     // Function to fetch available appointments from Google Sheet
@@ -35,7 +43,6 @@
         return;
       }
 
-      // Skip the header row and display available slots
       appointments.slice(1).forEach(appointment => {
         const [date, time, status] = appointment;
 
@@ -49,19 +56,50 @@
       });
     }
 
-    // Function to handle booking confirmation (for demonstration purposes)
+    // Function to handle booking confirmation
     function bookAppointment(date, time) {
       alert(`You have successfully booked an appointment on ${date} at ${time}.`);
-      // Here you would add logic to send booking confirmation to the Google Sheet
     }
 
-    // Automatically fetch appointments on page load
-    document.addEventListener('DOMContentLoaded', fetchAvailableAppointments);
+    // Function to display business info, images, and social media links
+    function displayBusinessDetails() {
+      document.getElementById('business-name').innerText = businessDetails.name;
+      document.getElementById('business-phone').innerText = businessDetails.phone;
+      document.getElementById('business-address').innerText = businessDetails.address;
+
+      const imageContainer = document.getElementById('image-gallery');
+      businessDetails.images.forEach(imageURL => {
+        const img = document.createElement('img');
+        img.src = imageURL;
+        img.style = 'width: 100%; height: auto; margin-bottom: 10px;';
+        imageContainer.appendChild(img);
+      });
+
+      const socialMediaContainer = document.getElementById('social-media');
+      for (const [platform, url] of Object.entries(businessDetails.socialMedia)) {
+        if (url) {
+          const icon = document.createElement('a');
+          icon.href = url;
+          icon.target = '_blank';
+          icon.innerHTML = `<img src="icons/${platform}.png" alt="${platform}" style="width: 30px; margin-right: 10px;">`;
+          socialMediaContainer.appendChild(icon);
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      displayBusinessDetails();
+      fetchAvailableAppointments();
+    });
   </script>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
+      padding: 20px;
+    }
+    .header {
+      background-color: #f4f4f4;
       padding: 20px;
     }
     .appointment-slot {
@@ -81,14 +119,30 @@
     button:hover {
       background-color: #0056b3;
     }
+    #social-media img {
+      width: 30px;
+      margin: 5px;
+    }
   </style>
 </head>
 <body>
-  <h1>Book an Appointment</h1>
+  <div class="header">
+    <h1 id="business-name"></h1>
+    <p id="business-phone"></p>
+    <p id="business-address"></p>
+  </div>
+
+  <div id="image-gallery"></div>
+
+  <h2>Book an Appointment</h2>
   <div id="booking-section">
     <p>Loading available appointments...</p>
   </div>
+
+  <div id="social-media"></div>
 </body>
+</html>
+
 </html>
 
 
