@@ -24,21 +24,23 @@
         facebook: document.getElementById('facebook').value
       };
 
+      // Collect all image URLs
+      const imageInputs = document.querySelectorAll('.image-url');
+      businessDetails.images = Array.from(imageInputs).map(input => input.value);
+
       alert('Business information successfully saved!');
       console.log(businessDetails);
     }
 
-    // Function to handle image upload
-    function handleImageUpload(event) {
-      const files = event.target.files;
-      for (let i = 0; i < files.length; i++) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          businessDetails.images.push(e.target.result);
-        };
-        reader.readAsDataURL(files[i]);
-      }
-      alert('Images successfully uploaded!');
+    // Function to dynamically add image URL fields
+    function addImageField() {
+      const imageContainer = document.getElementById('image-url-container');
+      const newInput = document.createElement('input');
+      newInput.type = 'text';
+      newInput.placeholder = 'Paste Image URL Here';
+      newInput.className = 'image-url';
+      newInput.style = 'width: 300px; display: block; margin-top: 10px;';
+      imageContainer.appendChild(newInput);
     }
 
     // Function to handle Web App URL submission
@@ -94,8 +96,11 @@
   <input type="text" id="tiktok" placeholder="TikTok Profile URL" style="width: 300px;"><br>
   <input type="text" id="facebook" placeholder="Facebook Profile URL" style="width: 300px;"><br>
 
-  <h2>Upload Business Images</h2>
-  <input type="file" id="image-upload" multiple onchange="handleImageUpload(event)"><br><br>
+  <h2>Business Images (Paste URLs)</h2>
+  <div id="image-url-container">
+    <input type="text" class="image-url" placeholder="Paste Image URL Here" style="width: 300px; display: block;">
+  </div>
+  <button onclick="addImageField()">+</button><br><br>
 
   <button onclick="submitBusinessInfo()">Save Business Info</button>
 
