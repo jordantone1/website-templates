@@ -12,30 +12,28 @@
       margin: 0;
     }
     .header {
-      background-color: #2C2C2C;
+      background-color: #2a2a2a;
       color: white;
       padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
     }
-    .footer {
-      background-color: #2C2C2C;
-      color: white;
-      padding: 10px;
-      position: fixed;
-      bottom: 0;
-      width: 100%;
+    .header-info {
+      text-align: left;
     }
-    .footer a {
-      color: white;
-      text-decoration: underline;
+    #social-media {
+      text-align: right;
     }
     button {
-      padding: 8px 16px;
+      padding: 10px 20px;
       background-color: #007BFF;
       color: white;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      margin: 5px;
+      margin: 10px;
     }
     button:hover {
       background-color: #0056b3;
@@ -50,142 +48,168 @@
       width: 80%;
     }
     .services-list {
-      margin-bottom: 20px;
+      margin: 20px 0;
+      font-size: 1.2em;
     }
-    #left-images, #right-images {
+    .image-container {
+      display: flex;
+      justify-content: space-between;
+      margin: 20px;
+    }
+    .image-column {
       width: 20%;
-      float: left;
     }
-    #right-images {
-      float: right;
+    .image-column img {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
     }
-    #main-content {
-      width: 60%;
-      margin: 0 auto;
+    .main-content {
+      width: 55%;
     }
-    #social-media img {
-      width: 30px;
-      margin: 0 10px;
-      cursor: pointer;
+    .footer {
+      background-color: #2a2a2a;
+      color: white;
+      padding: 10px;
+      margin-top: 20px;
+    }
+    .footer a {
+      color: white;
+      text-decoration: none;
     }
     @media (max-width: 768px) {
-      #left-images, #right-images, #main-content {
-        width: 100%;
-        float: none;
+      .image-container {
+        flex-direction: column;
+        align-items: center;
+      }
+      .image-column, .main-content {
+        width: 90%;
       }
     }
   </style>
-  <script>
-    let businessDetails = {
-      name: 'Your Business Name',
-      phone: '123-456-7890',
-      email: 'contact@yourbusiness.com',
-      address: '123 Main Street, City, State',
-      socialMedia: {
-        Instagram: 'https://instagram.com/yourbusiness',
-        TikTok: 'https://tiktok.com/@yourbusiness',
-        Facebook: 'https://facebook.com/yourbusiness'
-      },
-      images: {
-        left: ['https://example.com/image1.jpg', 'https://example.com/image2.jpg'],
-        right: ['https://example.com/image3.jpg', 'https://example.com/image4.jpg']
-      },
-      backgroundImage: 'https://example.com/background.jpg',
-      services: [
-        'Haircut - $50',
-        'Coloring - $80',
-        'Styling - $40'
-      ],
-    };
-
-    let calendarVisible = false;
-    let leftImageIndex = 0;
-    let rightImageIndex = 0;
-
-    window.onload = function() {
-      displayBusinessInfo();
-      startImageCycle('left');
-      startImageCycle('right');
-    };
-
-    function displayBusinessInfo() {
-      document.getElementById('business-name').innerText = businessDetails.name;
-      document.getElementById('business-phone').innerText = businessDetails.phone;
-      document.getElementById('business-address').innerText = businessDetails.address;
-      document.getElementById('business-email').innerText = businessDetails.email;
-      
-      const servicesList = document.getElementById('services-list');
-      businessDetails.services.forEach(service => {
-        const serviceItem = document.createElement('p');
-        serviceItem.innerText = service;
-        servicesList.appendChild(serviceItem);
-      });
-
-      for (const platform in businessDetails.socialMedia) {
-        addSocialMediaLink(platform, businessDetails.socialMedia[platform]);
-      }
-
-      if (businessDetails.backgroundImage) {
-        document.body.style.backgroundImage = `url('${businessDetails.backgroundImage}')`;
-        document.body.style.backgroundSize = 'cover';
-        document.body.style.backgroundPosition = 'center';
-      }
-    }
-
-    function addSocialMediaLink(platform, url) {
-      const container = document.getElementById('social-media');
-      const img = document.createElement('img');
-      img.src = `icons/${platform.toLowerCase()}.png`; // Assuming icons are stored in an 'icons' folder
-      img.alt = platform;
-      img.onclick = () => window.open(url, '_blank');
-      container.appendChild(img);
-    }
-
-    function startImageCycle(side) {
-      const images = businessDetails.images[side];
-      setInterval(() => {
-        const imgElement = document.getElementById(`${side}-images`);
-        if (side === 'left') {
-          leftImageIndex = (leftImageIndex + 1) % images.length;
-          imgElement.src = images[leftImageIndex];
-        } else {
-          rightImageIndex = (rightImageIndex + 1) % images.length;
-          imgElement.src = images[rightImageIndex];
-        }
-      }, 5000);
-    }
-
-    function toggleCalendar() {
-      calendarVisible = !calendarVisible;
-      document.getElementById('calendar').style.display = calendarVisible ? 'block' : 'none';
-    }
-  </script>
 </head>
 <body>
   <div class="header">
-    <h1 id="business-name"></h1>
-    <p id="business-phone"></p>
-    <p id="business-address"></p>
-    <p id="business-email"></p>
+    <div class="header-info">
+      <h1 id="business-name">Your Business Name</h1>
+      <p id="business-phone">123-456-7890</p>
+      <p id="business-address">123 Main Street, City, State</p>
+      <p id="business-email">contact@yourbusiness.com</p>
+    </div>
+    <div id="social-media"></div>
   </div>
 
-  <div id="left-images"><img src="" alt="Left Image" id="left-images"></div>
-  <div id="main-content">
-    <div id="social-media"></div>
-    <div class="services-list" id="services-list"></div>
-    <button onclick="toggleCalendar()">Book an Appointment</button>
-    <div id="calendar">
-      <h3>Select a Date</h3>
-      <div id="calendar-dates"></div>
-      <h3 id="selected-date"></h3>
-      <div id="time-slots"></div>
+  <div class="services-list" id="services-list"></div>
+
+  <button onclick="toggleCalendar()">Book an Appointment</button>
+
+  <div class="image-container">
+    <div class="image-column">
+      <img id="left-image" src="https://example.com/left1.jpg" alt="Left Image">
+    </div>
+    <div class="main-content">
+      <div id="calendar">
+        <h3>Select a Date</h3>
+        <div id="calendar-dates"></div>
+        <h3 id="selected-date"></h3>
+        <div id="time-slots"></div>
+      </div>
+    </div>
+    <div class="image-column">
+      <img id="right-image" src="https://example.com/right1.jpg" alt="Right Image">
     </div>
   </div>
-  <div id="right-images"><img src="" alt="Right Image" id="right-images"></div>
 
   <div class="footer">
     <a href="mailto:contact@yourbusiness.com">Contact Us</a>
   </div>
+
+  <script>
+    let calendarVisible = false;
+    const googleSheetURL = 'YOUR_GOOGLE_SHEET_WEB_APP_URL';
+
+    function toggleCalendar() {
+      calendarVisible = !calendarVisible;
+      document.getElementById('calendar').style.display = calendarVisible ? 'block' : 'none';
+      if (calendarVisible) generateCalendar();
+    }
+
+    function generateCalendar() {
+      const calendarDiv = document.getElementById('calendar-dates');
+      calendarDiv.innerHTML = '';
+      const today = new Date();
+      const maxBookingDate = new Date();
+      maxBookingDate.setMonth(maxBookingDate.getMonth() + 3);
+
+      for (let i = 0; i < 90; i++) {
+        const date = new Date();
+        date.setDate(today.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        const dayButton = document.createElement('button');
+        dayButton.innerText = date.toDateString();
+
+        dayButton.onclick = function() {
+          selectDate(dateStr);
+        };
+        calendarDiv.appendChild(dayButton);
+      }
+    }
+
+    function selectDate(date) {
+      document.getElementById('selected-date').innerText = `Selected Date: ${date}`;
+      generateTimeSlots(date);
+    }
+
+    function generateTimeSlots(date) {
+      const timeSlotDiv = document.getElementById('time-slots');
+      timeSlotDiv.innerHTML = '';
+      const availableTimes = ['09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM', '01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM', '04:00 PM', '04:30 PM'];
+
+      availableTimes.forEach(time => {
+        const timeButton = document.createElement('button');
+        timeButton.innerText = time;
+        timeButton.onclick = function() {
+          selectTime(date, time);
+        };
+        timeSlotDiv.appendChild(timeButton);
+      });
+    }
+
+    function selectTime(date, time) {
+      const phone = prompt('Enter your phone number:');
+      const selectedServices = prompt('Enter the services you would like to book:');
+      if (phone && selectedServices) {
+        sendBookingToSheet(date, time, phone, selectedServices);
+        alert(`Booking confirmed for ${date} at ${time} for ${selectedServices}.`);
+      }
+    }
+
+    function sendBookingToSheet(date, time, phone, services) {
+      const bookingData = {
+        date: date,
+        time: time,
+        phone: phone,
+        services: services
+      };
+
+      fetch(googleSheetURL, {
+        method: 'POST',
+        body: JSON.stringify(bookingData),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.result === 'success') {
+          console.log('Booking successfully recorded.');
+        } else {
+          console.log('Failed to record booking.');
+        }
+      })
+      .catch(error => console.error('Error:', error));
+    }
+  </script>
 </body>
 </html>
 
